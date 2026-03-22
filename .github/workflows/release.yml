@@ -2,92 +2,59 @@ name: CD - Release Build
 
 on:
   push:
-    branches:
-      - main
-    tags:
-      - 'v*.*.*'
+    branches: [main]
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release version (e.g., v1.0.0)'
-        required: true
-        default: 'v1.0.0'
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
-  create-release:
+  release:
     name: Create Release
     runs-on: ubuntu-latest
     outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      version: ${{ steps.get_version.outputs.version }}
+      version: ${{ steps.version.outputs.version }}
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
-    - name: Get version
-      id: get_version
+    - name: Generate version
+      id: version
       run: |
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-        elif [ "${{ github.ref_type }}" = "tag" ]; then
-          echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-        else
-          # Auto-release from main branch
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          DATE=$(date +%Y%m%d)
-          echo "version=dev-${DATE}-${SHORT_SHA}" >> $GITHUB_OUTPUT
-        fi
+        SHORT_SHA=$(git rev-parse --short HEAD)
+        DATE=$(date +%Y%m%d)
+        echo "version=dev-${DATE}-${SHORT_SHA}" >> $GITHUB_OUTPUT
 
-    - name: Create or Update Release
-      id: create_release
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ steps.get_version.outputs.version }}
-        name: Amplitron ${{ steps.get_version.outputs.version }}
-        prerelease: ${{ github.ref_type != 'tag' }}
+        tag_name: ${{ steps.version.outputs.version }}
+        name: Amplitron ${{ steps.version.outputs.version }}
+        generate_release_notes: true
         body: |
           ## Amplitron Guitar Amp Simulator
-          
-          ### What's New
-          - Professional guitar amp simulation
-          - Real-time audio processing with ultra-low latency
-          - 9 studio-quality effects pedals
-          - Preset management system
-          - Multi-track recording with metadata
-          
+
+          Auto-release from `main` branch — commit ${{ github.sha }}
+
           ### Downloads
-          Choose the version for your operating system below.
-          
-          ### System Requirements
-          - **Windows**: Windows 10/11 (64-bit)
-          - **macOS**: macOS 10.15 Catalina or later
-          - **Linux**: Ubuntu 20.04+ / Fedora 35+ / Arch Linux
-          
-          ### Installation
-          See the [download page](https://sudip-mondal-2002.github.io/Amplitron/) for detailed installation instructions.
-          
-          ---
+          | Platform | File |
+          |----------|------|
+          | Windows 10/11 (64-bit) | `Amplitron-Windows-x64.zip` |
+          | macOS 10.15+ | `Amplitron-macOS-Universal.tar.gz` |
+          | Linux x64 | `Amplitron-Linux-x64.tar.gz` |
+
+          **Website**: https://sudip-mondal-2002.github.io/Amplitron/
           **Contact**: sudmondal2002@gmail.com
-        draft: false
-        prerelease: false
 
   build-windows:
     name: Build Windows
-    needs: create-release
+    needs: release
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install MSYS2
-      uses: msys2/setup-msys2@v2
+    - uses: msys2/setup-msys2@v2
       with:
         msystem: MINGW64
         update: true
@@ -101,8 +68,7 @@ jobs:
 
     - name: Setup ImGui
       shell: msys2 {0}
-      run: |
-        git clone --depth 1 --branch v1.90.1 https://github.com/ocornut/imgui.git external/imgui
+      run: git clone --depth 1 --branch v1.90.1 https://github.com/ocornut/imgui.git external/imgui
 
     - name: Build
       shell: msys2 {0}
@@ -119,26 +85,22 @@ jobs:
         cp README.md release/Amplitron-Windows/
         cp -r assets release/Amplitron-Windows/ || true
         cp -r presets release/Amplitron-Windows/ || true
-        
-        # Copy MinGW DLLs
         cp /mingw64/bin/libgcc_s_seh-1.dll release/Amplitron-Windows/
         cp /mingw64/bin/libstdc++-6.dll release/Amplitron-Windows/
         cp /mingw64/bin/libwinpthread-1.dll release/Amplitron-Windows/
         cp /mingw64/bin/libportaudio-2.dll release/Amplitron-Windows/
         cp /mingw64/bin/SDL2.dll release/Amplitron-Windows/
-        
-        cd release
-        7z a -tzip Amplitron-Windows-x64.zip Amplitron-Windows
+        cd release && 7z a -tzip Amplitron-Windows-x64.zip Amplitron-Windows
 
-    - name: Upload Release Asset
-      uses: softprops/action-gh-release@v1
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ needs.create-release.outputs.version }}
+        tag_name: ${{ needs.release.outputs.version }}
         files: ./release/Amplitron-Windows-x64.zip
 
   build-macos:
     name: Build macOS
-    needs: create-release
+    needs: release
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
@@ -161,53 +123,36 @@ jobs:
           ..
         make -j$(sysctl -n hw.ncpu)
 
-    - name: Create App Bundle
+    - name: Package
       run: |
-        mkdir -p release/Amplitron.app/Contents/MacOS
-        mkdir -p release/Amplitron.app/Contents/Resources
-        
+        mkdir -p release/Amplitron.app/Contents/{MacOS,Resources}
         cp build/guitar-amp release/Amplitron.app/Contents/MacOS/Amplitron
         cp -r assets release/Amplitron.app/Contents/Resources/ || true
-        cp -r presets release/Amplitron.app/Contents/Resources/ || true
-        
-        # Create Info.plist
-        cat > release/Amplitron.app/Contents/Info.plist << EOF
+        cat > release/Amplitron.app/Contents/Info.plist << 'PLIST'
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
         <dict>
-            <key>CFBundleExecutable</key>
-            <string>Amplitron</string>
-            <key>CFBundleIdentifier</key>
-            <string>com.amplitron.app</string>
-            <key>CFBundleName</key>
-            <string>Amplitron</string>
-            <key>CFBundleVersion</key>
-            <string>${{ needs.create-release.outputs.version }}</string>
-            <key>CFBundleShortVersionString</key>
-            <string>${{ needs.create-release.outputs.version }}</string>
-            <key>CFBundlePackageType</key>
-            <string>APPL</string>
-            <key>NSHighResolutionCapable</key>
-            <true/>
-            <key>NSMicrophoneUsageDescription</key>
-            <string>Amplitron needs microphone access for guitar input.</string>
+          <key>CFBundleExecutable</key><string>Amplitron</string>
+          <key>CFBundleIdentifier</key><string>com.amplitron.app</string>
+          <key>CFBundleName</key><string>Amplitron</string>
+          <key>CFBundlePackageType</key><string>APPL</string>
+          <key>NSHighResolutionCapable</key><true/>
+          <key>NSMicrophoneUsageDescription</key><string>Amplitron needs microphone access for guitar input.</string>
         </dict>
         </plist>
-        EOF
-        
-        cd release
-        tar -czf Amplitron-macOS-Universal.tar.gz Amplitron.app
+        PLIST
+        cd release && tar -czf Amplitron-macOS-Universal.tar.gz Amplitron.app
 
-    - name: Upload Release Asset
-      uses: softprops/action-gh-release@v1
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ needs.create-release.outputs.version }}
+        tag_name: ${{ needs.release.outputs.version }}
         files: ./release/Amplitron-macOS-Universal.tar.gz
 
   build-linux:
     name: Build Linux
-    needs: create-release
+    needs: release
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -236,37 +181,30 @@ jobs:
       run: |
         mkdir -p release/Amplitron-Linux
         cp build/guitar-amp release/Amplitron-Linux/amplitron
+        chmod +x release/Amplitron-Linux/amplitron
         cp README.md release/Amplitron-Linux/
         cp -r assets release/Amplitron-Linux/ || true
-        cp -r presets release/Amplitron-Linux/ || true
-
-        cat > release/Amplitron-Linux/amplitron.sh << 'LAUNCHER'
-        #!/bin/bash
-        SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-        cd "$SCRIPT_DIR"
-        ./amplitron
-        LAUNCHER
+        printf '#!/bin/bash\ncd "$(dirname "$0")"\n./amplitron\n' > release/Amplitron-Linux/amplitron.sh
         chmod +x release/Amplitron-Linux/amplitron.sh
-        chmod +x release/Amplitron-Linux/amplitron
+        cd release && tar -czf Amplitron-Linux-x64.tar.gz Amplitron-Linux
 
-        cd release
-        tar -czf Amplitron-Linux-x64.tar.gz Amplitron-Linux
-
-    - name: Upload Release Asset
-      uses: softprops/action-gh-release@v1
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ needs.create-release.outputs.version }}
+        tag_name: ${{ needs.release.outputs.version }}
         files: ./release/Amplitron-Linux-x64.tar.gz
 
   deploy-website:
     name: Deploy Download Page
-    needs: [create-release, build-windows, build-macos, build-linux]
+    needs: [release, build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+      contents: write
     steps:
     - uses: actions/checkout@v4
-
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
+    - uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./docs
