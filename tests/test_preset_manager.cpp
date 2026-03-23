@@ -37,8 +37,6 @@ TEST(preset_get_presets_dir_creates_dir) {
 }
 
 TEST(preset_save_creates_file) {
-    // We need PortAudio initialized for AudioEngine
-    Pa_Initialize();
     AudioEngine engine;
     engine.initialize();
 
@@ -76,7 +74,6 @@ TEST(preset_save_creates_file) {
 }
 
 TEST(preset_save_and_load_roundtrip) {
-    Pa_Initialize();
     AudioEngine engine;
     engine.initialize();
 

@@ -4,11 +4,6 @@
 #include "audio/effect.h"
 #include "audio/recorder.h"
 #include "audio/spsc_queue.h"
-#ifndef __EMSCRIPTEN__
-#include <portaudio.h>
-#else
-#include <SDL.h>
-#endif
 #include <chrono>
 
 namespace GuitarAmp {
@@ -22,87 +17,203 @@ struct AudioDeviceInfo {
     bool is_usb_device;
 };
 
+struct AudioBackendState;
+
+/**
+ * @brief Core audio processing engine.
+ *
+ * Manages the audio stream (via a platform backend), the effect chain,
+ * master gain controls, CPU load monitoring, and a lock-free SPSC command
+ * queue for thread-safe GUI-to-audio parameter updates.
+ *
+ * All platform-specific code (PortAudio / SDL) lives in separate
+ * compilation units; the engine itself is platform-agnostic.
+ */
 class AudioEngine {
 public:
+    /** @brief Construct the engine with default settings. */
     AudioEngine();
+
+    /** @brief Destructor — shuts down the audio stream if still running. */
     ~AudioEngine();
 
+    /** @brief Initialize the audio back-end. @return true on success. */
     bool initialize();
-    void shutdown();
-    bool start();
-    void stop();
-    bool restart();  // stop + start (for manual recovery)
 
-    // Error reporting
+    /** @brief Release audio back-end resources. */
+    void shutdown();
+
+    /** @brief Open and start the audio stream. @return true on success. */
+    bool start();
+
+    /** @brief Stop the audio stream. */
+    void stop();
+
+    /** @brief Stop and restart the stream (manual recovery). @return true on success. */
+    bool restart();
+
+    /** @brief Return the last error message, or empty string. */
     std::string get_last_error() const { return last_error_; }
+
+    /** @brief Clear the stored error message. */
     void clear_error() { last_error_.clear(); }
 
-    // Device management
+    /** @brief Enumerate available audio input devices. */
     std::vector<AudioDeviceInfo> get_input_devices() const;
+
+    /** @brief Enumerate available audio output devices. */
     std::vector<AudioDeviceInfo> get_output_devices() const;
+
+    /**
+     * @brief Select the input device by index.
+     * @return true if the device was set successfully.
+     */
     bool set_input_device(int device_index);
+
+    /**
+     * @brief Select the output device by index.
+     * @return true if the device was set successfully.
+     */
     bool set_output_device(int device_index);
+
+    /** @brief Return the current input device index. */
     int get_input_device() const { return input_device_; }
+
+    /** @brief Return the current output device index. */
     int get_output_device() const { return output_device_; }
+
+    /** @brief Return the human-readable input device name. */
     std::string get_input_device_name() const;
+
+    /** @brief Return the human-readable output device name. */
     std::string get_output_device_name() const;
 
-    // Effect chain
+    /**
+     * @brief Append an effect to the end of the chain (mutex-protected).
+     * @param effect Shared pointer to the effect to add.
+     */
     void add_effect(std::shared_ptr<Effect> effect);
+
+    /**
+     * @brief Remove the effect at @p index from the chain (mutex-protected).
+     * @param index Zero-based position in the effect chain.
+     */
     void remove_effect(int index);
+
+    /**
+     * @brief Move an effect from position @p from to position @p to (mutex-protected).
+     * @param from Source index.
+     * @param to   Destination index.
+     */
     void move_effect(int from, int to);
+
+    /** @brief Direct access to the effect chain vector (GUI thread only). */
     std::vector<std::shared_ptr<Effect>>& effects() { return effects_; }
 
-    // Settings
+    /**
+     * @brief Atomically replace the entire effect chain (mutex-protected).
+     *
+     * Used by LoadPresetCommand undo/redo so the audio thread never observes
+     * a half-applied state.
+     *
+     * @param new_effects The complete new effect chain to install.
+     */
+    void restore_effects_state(std::vector<std::shared_ptr<Effect>> new_effects);
+
+    /**
+     * @brief Set the audio buffer size (takes effect on next stream restart).
+     * @param size Buffer size in samples.
+     */
     void set_buffer_size(int size);
+
+    /**
+     * @brief Set the audio sample rate (takes effect on next stream restart).
+     * @param rate Sample rate in Hz.
+     */
     void set_sample_rate(int rate);
+
+    /** @brief Return the current buffer size in samples. */
     int get_buffer_size() const { return buffer_size_; }
+
+    /** @brief Return the current sample rate in Hz. */
     int get_sample_rate() const { return sample_rate_; }
+
+    /** @brief Return true if the audio stream is actively running. */
     bool is_running() const { return running_; }
 
-    // Metering
+    /** @brief Return the most recent input peak level (0.0–1.0, atomic). */
     float get_input_level() const { return input_level_.load(); }
+
+    /** @brief Return the most recent output peak level (0.0–1.0, atomic). */
     float get_output_level() const { return output_level_.load(); }
 
-    // Master volume (lock-free via SPSC queue)
+    /**
+     * @brief Set the master input gain (enqueued to audio thread via SPSC queue).
+     * @param gain Linear gain multiplier.
+     */
     void set_input_gain(float gain);
+
+    /**
+     * @brief Set the master output gain (enqueued to audio thread via SPSC queue).
+     * @param gain Linear gain multiplier.
+     */
     void set_output_gain(float gain);
+
+    /** @brief Return the current input gain (atomic relaxed read). */
     float get_input_gain() const { return input_gain_.load(std::memory_order_relaxed); }
+
+    /** @brief Return the current output gain (atomic relaxed read). */
     float get_output_gain() const { return output_gain_.load(std::memory_order_relaxed); }
 
-    // Lock-free parameter updates from GUI thread
+    /**
+     * @brief Enqueue a parameter value change from the GUI thread (lock-free).
+     * @param effect_index Index of the effect in the chain.
+     * @param param_index  Index of the parameter within the effect.
+     * @param value        New parameter value.
+     */
     void push_param_change(int effect_index, int param_index, float value);
+
+    /**
+     * @brief Enqueue an effect enabled/disabled change from the GUI thread.
+     * @param effect_index Index of the effect in the chain.
+     * @param enabled      >0.5 means enabled.
+     */
     void push_effect_enabled(int effect_index, float enabled);
+
+    /**
+     * @brief Enqueue a dry/wet mix change from the GUI thread.
+     * @param effect_index Index of the effect in the chain.
+     * @param mix          New mix value (0.0–1.0).
+     */
     void push_effect_mix(int effect_index, float mix);
 
-    // CPU load monitoring for buffer auto-tuning
+    /** @brief Return the current CPU load fraction (0.0–1.0, atomic). */
     float get_cpu_load() const { return cpu_load_.load(std::memory_order_relaxed); }
+
+    /** @brief Suggest a new buffer size based on current CPU load. */
     int get_suggested_buffer_size() const;
+
+    /** @brief Return true if automatic buffer-size tuning is enabled. */
     bool is_auto_buffer_enabled() const { return auto_buffer_enabled_; }
+
+    /** @brief Enable or disable automatic buffer-size tuning. */
     void set_auto_buffer_enabled(bool enabled) { auto_buffer_enabled_ = enabled; }
 
-    // Recording
+    /** @brief Access the built-in audio recorder. */
     Recorder& recorder() { return recorder_; }
 
-private:
+    /**
+     * @brief Run the DSP pipeline on a block of audio samples.
+     *
+     * Called by the platform backend's audio callback. Public so that
+     * backend compilation units (which are not class members) can invoke it.
+     */
     void process_audio(const float* input, float* output, int frame_count);
 
-#ifndef __EMSCRIPTEN__
-    static int audio_callback(const void* input, void* output,
-                              unsigned long frame_count,
-                              const PaStreamCallbackTimeInfo* time_info,
-                              PaStreamCallbackFlags status_flags,
-                              void* user_data);
-    void auto_detect_devices();
-    static bool is_usb_device_name(const std::string& name);
-    bool devices_share_host_api(int input_dev, int output_dev) const;
-    PaStream* stream_ = nullptr;
-#else
-    static void sdl_audio_callback(void* userdata, Uint8* stream, int len);
-    SDL_AudioDeviceID sdl_audio_device_ = 0;
-    SDL_AudioDeviceID sdl_capture_device_ = 0;
-    std::vector<float> capture_buffer_;
-#endif
+private:
+    // Platform backend state (defined in the backend .cpp that is compiled)
+    AudioBackendState* backend_ = nullptr;
+
     bool initialized_ = false;
     bool running_ = false;
 

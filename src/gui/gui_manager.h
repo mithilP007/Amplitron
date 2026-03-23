@@ -3,6 +3,7 @@
 #include "common.h"
 #include "audio/audio_engine.h"
 #include "preset_manager.h"
+#include "gui/command_history.h"
 
 struct SDL_Window;
 typedef void* SDL_GLContext;
@@ -11,26 +12,76 @@ namespace GuitarAmp {
 
 class PedalBoard;
 
+/**
+ * @brief Top-level GUI controller.
+ *
+ * Owns the SDL window, OpenGL context, Dear ImGui state, and the
+ * PedalBoard / CommandHistory instances. Drives the main render loop
+ * and dispatches keyboard shortcuts.
+ */
 class GuiManager {
 public:
+    /**
+     * @brief Construct the GUI manager.
+     * @param engine Reference to the audio engine shared with PedalBoard.
+     */
     GuiManager(AudioEngine& engine);
+
+    /** @brief Destructor — calls shutdown() if still initialized. */
     ~GuiManager();
 
+    /**
+     * @brief Create the SDL window, OpenGL context, and ImGui backend.
+     * @param width  Initial window width in pixels.
+     * @param height Initial window height in pixels.
+     * @return true on success.
+     */
     bool initialize(int width = 1280, int height = 720);
+
+    /** @brief Tear down ImGui, OpenGL, and SDL resources. */
     void shutdown();
-    bool run_frame();  // returns false when should quit
+
+    /**
+     * @brief Process events, render one frame, and swap buffers.
+     * @return false when the application should quit.
+     */
+    bool run_frame();
 
 private:
+    /** @brief Render the main menu bar (File, Edit, View, Help). */
     void render_menu_bar();
+
+    /** @brief Render the audio settings modal window. */
     void render_settings_window();
+
+    /**
+     * @brief Render a single vertical level meter.
+     * @param label Display label.
+     * @param level Current peak level (0.0–1.0).
+     * @param x     Screen X position.
+     * @param y     Screen Y position.
+     * @param w     Width in pixels.
+     * @param h     Height in pixels.
+     */
     void render_meter(const char* label, float level, float x, float y, float w, float h);
+
+    /** @brief Render input/output gain sliders and level meters. */
     void render_master_controls();
+
+    /** @brief Render the "Save Preset" popup dialog. */
     void render_save_preset_popup();
+
+    /** @brief Render the "Load Preset" popup dialog. */
     void render_load_preset_popup();
+
+    /** @brief Render the recording start/stop controls. */
     void render_recording_controls();
+
+    /** @brief Render the "Save Recording" file dialog. */
     void render_recording_save_dialog();
 
     AudioEngine& engine_;
+    CommandHistory command_history_;
     SDL_Window* window_ = nullptr;
     SDL_GLContext gl_context_ = nullptr;
     std::unique_ptr<PedalBoard> pedal_board_;
