@@ -3,6 +3,7 @@
 #include "common.h"
 #include "audio/audio_engine.h"
 #include "preset_manager.h"
+#include "gui/command_history.h"
 
 struct SDL_Window;
 typedef void* SDL_GLContext;
@@ -31,6 +32,7 @@ private:
     void render_recording_save_dialog();
 
     AudioEngine& engine_;
+    CommandHistory command_history_;
     SDL_Window* window_ = nullptr;
     SDL_GLContext gl_context_ = nullptr;
     std::unique_ptr<PedalBoard> pedal_board_;

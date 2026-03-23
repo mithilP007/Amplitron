@@ -2,6 +2,7 @@
 #include "gui/pedal_board.h"
 #include "gui/theme.h"
 #include "gui/file_dialog.h"
+#include "gui/command.h"
 
 #include <SDL.h>
 #ifdef __EMSCRIPTEN__
@@ -131,7 +132,7 @@ bool GuiManager::initialize(int width, int height) {
     ImGui_ImplOpenGL3_Init("#version 330");
 #endif
 
-    pedal_board_ = std::make_unique<PedalBoard>(engine_);
+    pedal_board_ = std::make_unique<PedalBoard>(engine_, command_history_);
 
     initialized_ = true;
     return true;
@@ -172,6 +173,27 @@ bool GuiManager::run_frame() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
+
+    // Keyboard shortcuts for undo/redo (Cmd+Z / Ctrl+Z, Cmd+Shift+Z / Ctrl+Y)
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        bool mod = io.KeySuper || io.KeyCtrl;  // Cmd on macOS, Ctrl on Win/Linux
+        if (mod && !io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_Z)) {
+            if (command_history_.undo() && pedal_board_) {
+                pedal_board_->rebuild_widgets();
+            }
+        }
+        if (mod && io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_Z)) {
+            if (command_history_.redo() && pedal_board_) {
+                pedal_board_->rebuild_widgets();
+            }
+        }
+        if (mod && !io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_Y)) {
+            if (command_history_.redo() && pedal_board_) {
+                pedal_board_->rebuild_widgets();
+            }
+        }
+    }
 
     // Main menu bar
     render_menu_bar();
@@ -247,6 +269,30 @@ void GuiManager::render_menu_bar() {
                 SDL_Event quit_event;
                 quit_event.type = SDL_QUIT;
                 SDL_PushEvent(&quit_event);
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Edit")) {
+            bool can_undo = command_history_.can_undo();
+            bool can_redo = command_history_.can_redo();
+
+            const char* undo_label = command_history_.undo_description();
+            char undo_buf[64] = "Undo";
+            if (undo_label) snprintf(undo_buf, sizeof(undo_buf), "Undo %s", undo_label);
+
+            const char* redo_label = command_history_.redo_description();
+            char redo_buf[64] = "Redo";
+            if (redo_label) snprintf(redo_buf, sizeof(redo_buf), "Redo %s", redo_label);
+
+            if (ImGui::MenuItem(undo_buf, "Ctrl+Z", false, can_undo)) {
+                if (command_history_.undo() && pedal_board_) {
+                    pedal_board_->rebuild_widgets();
+                }
+            }
+            if (ImGui::MenuItem(redo_buf, "Ctrl+Shift+Z", false, can_redo)) {
+                if (command_history_.redo() && pedal_board_) {
+                    pedal_board_->rebuild_widgets();
+                }
             }
             ImGui::EndMenu();
         }
@@ -610,7 +656,40 @@ void GuiManager::render_load_preset_popup() {
         if (slash != std::string::npos) display = display.substr(slash + 1);
 
         if (ImGui::Selectable(display.c_str())) {
+            // Capture state before loading for LoadPresetCommand
+            std::vector<LoadPresetCommand::EffectSnapshot> before_state;
+            for (auto& fx : engine_.effects()) {
+                LoadPresetCommand::EffectSnapshot snap;
+                snap.effect = fx;
+                snap.enabled = fx->is_enabled();
+                snap.mix = fx->get_mix();
+                for (auto& p : fx->params()) snap.param_values.push_back(p.value);
+                before_state.push_back(std::move(snap));
+            }
+            float before_in = engine_.get_input_gain();
+            float before_out = engine_.get_output_gain();
+
             if (PresetManager::load_preset(filepath, engine_)) {
+                // Capture state after loading
+                std::vector<LoadPresetCommand::EffectSnapshot> after_state;
+                for (auto& fx : engine_.effects()) {
+                    LoadPresetCommand::EffectSnapshot snap;
+                    snap.effect = fx;
+                    snap.enabled = fx->is_enabled();
+                    snap.mix = fx->get_mix();
+                    for (auto& p : fx->params()) snap.param_values.push_back(p.value);
+                    after_state.push_back(std::move(snap));
+                }
+                float after_in = engine_.get_input_gain();
+                float after_out = engine_.get_output_gain();
+
+                // Clear history and record the load as the first undoable action
+                command_history_.clear();
+                auto cmd = std::make_unique<LoadPresetCommand>(
+                    engine_, std::move(before_state), before_in, before_out,
+                    std::move(after_state), after_in, after_out);
+                command_history_.push_executed(std::move(cmd));
+
                 preset_status_msg_ = "Loaded: " + display;
                 show_load_preset_ = false;
                 // Rebuild pedal board widgets to match new chain

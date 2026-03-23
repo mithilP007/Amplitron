@@ -109,6 +109,7 @@ set(APP_SOURCES
     src/gui/pedal_board.cpp
     src/gui/pedal_widget.cpp
     src/gui/file_dialog.cpp
+    src/gui/command_history.cpp
 )
 
 # =============================================================================
@@ -210,6 +211,7 @@ else() # NOT EMSCRIPTEN
         tests/test_preset_manager.cpp
         tests/test_recorder.cpp
         tests/test_theme.cpp
+        tests/test_command_history.cpp
     )
 
     # Effect + core sources needed by tests (no GUI, no main)
@@ -217,6 +219,7 @@ else() # NOT EMSCRIPTEN
         src/preset_manager.cpp
         src/audio/audio_engine.cpp
         src/audio/recorder.cpp
+        src/gui/command_history.cpp
         src/audio/effects/distortion.cpp
         src/audio/effects/overdrive.cpp
         src/audio/effects/delay.cpp

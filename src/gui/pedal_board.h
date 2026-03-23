@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "audio/audio_engine.h"
+#include "gui/command_history.h"
 
 namespace GuitarAmp {
 
@@ -9,7 +10,7 @@ class PedalWidget;
 
 class PedalBoard {
 public:
-    PedalBoard(AudioEngine& engine);
+    PedalBoard(AudioEngine& engine, CommandHistory& history);
     ~PedalBoard();
 
     void render();
@@ -21,6 +22,7 @@ private:
     void render_signal_chain();
 
     AudioEngine& engine_;
+    CommandHistory& history_;
     std::vector<std::unique_ptr<PedalWidget>> widgets_;
 };
 

@@ -1,5 +1,7 @@
 #include "gui/pedal_widget.h"
 #include "gui/theme.h"
+#include "gui/command.h"
+#include "gui/command_history.h"
 #include <cstring>
 #include <cmath>
 
@@ -116,6 +118,12 @@ bool PedalWidget::render() {
         // --- Interaction ---
         float range = params[i].max_val - params[i].min_val;
 
+        // Track drag start for undo coalescing
+        if (is_active && !knob_was_active_) {
+            active_param_index_ = i;
+            param_value_before_drag_ = params[i].value;
+        }
+
         if (is_active) {
             float mdx = ImGui::GetIO().MouseDelta.x;
             float mdy = ImGui::GetIO().MouseDelta.y;
@@ -160,17 +168,39 @@ bool PedalWidget::render() {
             }
         }
 
+        // Commit param change when drag ends
+        if (knob_was_active_ && !is_active && active_param_index_ == i) {
+            float new_val = params[i].value;
+            if (new_val != param_value_before_drag_) {
+                commit_param_change(i, param_value_before_drag_, new_val);
+            }
+            active_param_index_ = -1;
+        }
+
+        // Update active tracking for this knob
+        if (active_param_index_ == i) {
+            knob_was_active_ = is_active;
+        }
+
         // Scroll wheel
         if (is_hovered && std::fabs(ImGui::GetIO().MouseWheel) > 0.0f) {
+            float old_val = params[i].value;
             float step = range * 0.03f;
             if (ImGui::GetIO().KeyShift) step *= 0.2f;
             params[i].value = clamp(params[i].value + ImGui::GetIO().MouseWheel * step,
                                     params[i].min_val, params[i].max_val);
+            if (params[i].value != old_val) {
+                commit_param_change(i, old_val, params[i].value);
+            }
         }
 
         // Double-click to reset
         if (is_hovered && ImGui::IsMouseDoubleClicked(0)) {
+            float old_val = params[i].value;
             params[i].value = params[i].default_val;
+            if (params[i].value != old_val) {
+                commit_param_change(i, old_val, params[i].value);
+            }
         }
 
         // Right-click for direct input
@@ -180,10 +210,18 @@ bool PedalWidget::render() {
         if (ImGui::BeginPopup(label)) {
             ImGui::Text("%s", params[i].name.c_str());
             ImGui::SetNextItemWidth(120);
+            float before_slider = params[i].value;
             ImGui::SliderFloat("##edit", &params[i].value,
                                params[i].min_val, params[i].max_val, "%.2f");
+            if (ImGui::IsItemDeactivatedAfterEdit() && params[i].value != before_slider) {
+                commit_param_change(i, before_slider, params[i].value);
+            }
             if (ImGui::Button("Reset")) {
+                float old_val = params[i].value;
                 params[i].value = params[i].default_val;
+                if (params[i].value != old_val) {
+                    commit_param_change(i, old_val, params[i].value);
+                }
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
@@ -268,6 +306,8 @@ bool PedalWidget::render() {
         ImGui::PopStyleColor();
     }
 
+    // knob_was_active_ is updated per-knob inside the loop above
+
     // Footswitch (toggle on/off)
     float switch_y = p0.y + pedal_height - 55;
     float switch_x = p0.x + (pedal_width - 50) / 2;
@@ -304,6 +344,14 @@ bool PedalWidget::render() {
 
     ImGui::PopID();
     return should_remove;
+}
+
+void PedalWidget::commit_param_change(int param_index, float old_val, float new_val) {
+    if (!history_) return;
+    // Value is already applied by the knob — push without executing.
+    auto cmd = std::make_unique<ParameterChangeCommand>(
+        effect_, param_index, old_val, new_val);
+    history_->push_executed(std::move(cmd));
 }
 
 } // namespace GuitarAmp

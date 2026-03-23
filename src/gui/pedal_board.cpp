@@ -1,6 +1,7 @@
 #include "gui/pedal_board.h"
 #include "gui/pedal_widget.h"
 #include "gui/theme.h"
+#include "gui/command.h"
 
 #include "audio/effects/noise_gate.h"
 #include "audio/effects/compressor.h"
@@ -17,8 +18,8 @@
 
 namespace GuitarAmp {
 
-PedalBoard::PedalBoard(AudioEngine& engine)
-    : engine_(engine) {
+PedalBoard::PedalBoard(AudioEngine& engine, CommandHistory& history)
+    : engine_(engine), history_(history) {
     rebuild_widgets();
 }
 
@@ -28,7 +29,9 @@ void PedalBoard::rebuild_widgets() {
     widgets_.clear();
     auto& effects = engine_.effects();
     for (int i = 0; i < static_cast<int>(effects.size()); ++i) {
-        widgets_.push_back(std::make_unique<PedalWidget>(effects[i], i));
+        auto w = std::make_unique<PedalWidget>(effects[i], i);
+        w->set_history(&history_);
+        widgets_.push_back(std::move(w));
     }
 }
 
@@ -71,51 +74,51 @@ void PedalBoard::render_add_pedal_menu() {
     if (ImGui::BeginPopup("AddPedalPopup")) {
         ImGui::TextColored(Theme::Gold(), "DRIVE");
         if (ImGui::MenuItem("Overdrive")) {
-            engine_.add_effect(std::make_shared<Overdrive>());
+            history_.execute(std::make_unique<AddEffectCommand>(engine_, std::make_shared<Overdrive>()));
             rebuild_widgets();
         }
         if (ImGui::MenuItem("Distortion")) {
-            engine_.add_effect(std::make_shared<Distortion>());
+            history_.execute(std::make_unique<AddEffectCommand>(engine_, std::make_shared<Distortion>()));
             rebuild_widgets();
         }
 
         ImGui::Separator();
         ImGui::TextColored(Theme::Live(), "DYNAMICS");
         if (ImGui::MenuItem("Noise Gate")) {
-            engine_.add_effect(std::make_shared<NoiseGate>());
+            history_.execute(std::make_unique<AddEffectCommand>(engine_, std::make_shared<NoiseGate>()));
             rebuild_widgets();
         }
         if (ImGui::MenuItem("Compressor")) {
-            engine_.add_effect(std::make_shared<Compressor>());
+            history_.execute(std::make_unique<AddEffectCommand>(engine_, std::make_shared<Compressor>()));
             rebuild_widgets();
         }
 
         ImGui::Separator();
         ImGui::TextColored(ImVec4(0.35f, 0.60f, 0.95f, 1.0f), "MODULATION");
         if (ImGui::MenuItem("Chorus")) {
-            engine_.add_effect(std::make_shared<Chorus>());
+            history_.execute(std::make_unique<AddEffectCommand>(engine_, std::make_shared<Chorus>()));
             rebuild_widgets();
         }
 
         ImGui::Separator();
         ImGui::TextColored(ImVec4(0.65f, 0.35f, 0.95f, 1.0f), "TIME");
         if (ImGui::MenuItem("Delay")) {
-            engine_.add_effect(std::make_shared<Delay>());
+            history_.execute(std::make_unique<AddEffectCommand>(engine_, std::make_shared<Delay>()));
             rebuild_widgets();
         }
         if (ImGui::MenuItem("Reverb")) {
-            engine_.add_effect(std::make_shared<Reverb>());
+            history_.execute(std::make_unique<AddEffectCommand>(engine_, std::make_shared<Reverb>()));
             rebuild_widgets();
         }
 
         ImGui::Separator();
         ImGui::TextColored(Theme::GoldDim(), "TONE");
         if (ImGui::MenuItem("Equalizer")) {
-            engine_.add_effect(std::make_shared<Equalizer>());
+            history_.execute(std::make_unique<AddEffectCommand>(engine_, std::make_shared<Equalizer>()));
             rebuild_widgets();
         }
         if (ImGui::MenuItem("Cabinet Sim")) {
-            engine_.add_effect(std::make_shared<CabinetSim>());
+            history_.execute(std::make_unique<AddEffectCommand>(engine_, std::make_shared<CabinetSim>()));
             rebuild_widgets();
         }
 
@@ -176,7 +179,7 @@ void PedalBoard::render_signal_chain() {
 
     // Handle removal
     if (remove_idx >= 0) {
-        engine_.remove_effect(remove_idx);
+        history_.execute(std::make_unique<RemoveEffectCommand>(engine_, remove_idx));
         rebuild_widgets();
     }
 
