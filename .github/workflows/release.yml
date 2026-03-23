@@ -18,7 +18,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -70,7 +70,7 @@ jobs:
     needs: create-release
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Download Windows Build
       uses: actions/download-artifact@v4
@@ -107,7 +107,7 @@ jobs:
     needs: create-release
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Download macOS Build
       uses: actions/download-artifact@v4
@@ -242,7 +242,7 @@ jobs:
     needs: create-release
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Download Linux Build
       uses: actions/download-artifact@v4
@@ -274,7 +274,7 @@ jobs:
     needs: [create-release, package-windows, package-macos, package-linux]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
