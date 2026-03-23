@@ -12,7 +12,7 @@ endif()
 
 # Compiler flags
 if(EMSCRIPTEN)
-    add_compile_options(-O3 -ffast-math -pthread)
+    add_compile_options(-O3 -ffast-math -pthread "-sUSE_SDL=2" -Wno-nontrivial-memcall)
 elseif(MSVC)
     add_compile_options(/W4 /fp:fast)
     if(CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -143,6 +143,7 @@ if(EMSCRIPTEN)
         "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap']"
         "-sSTACK_SIZE=1048576"
         "-sPTHREAD_POOL_SIZE=4"
+        "-Wno-pthreads-mem-growth"
         "--shell-file" "${CMAKE_SOURCE_DIR}/web/shell.html"
     )
 

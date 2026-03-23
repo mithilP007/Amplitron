@@ -526,19 +526,8 @@ void AudioEngine::sdl_audio_callback(void* userdata, Uint8* stream, int len) {
     int frame_count = len / static_cast<int>(sizeof(float));
 
     // Web demo: process effects on silence (no mic input by default).
-    // The DSP chain still runs — user hears effects applied to silence/noise.
-    // A real input would require getUserMedia integration.
+    // The DSP chain still runs. A real input would require getUserMedia.
     std::memset(out, 0, static_cast<size_t>(len));
-
-    // Feed a tiny test signal so users can hear effects are working
-    // (very quiet impulse click every ~1 second for reverb/delay demos)
-    static int click_counter = 0;
-    if (click_counter <= 0) {
-        if (frame_count > 0) out[0] = 0.5f;
-        click_counter = engine->sample_rate_;  // once per second
-    }
-    click_counter -= frame_count;
-
     engine->process_audio(out, out, frame_count);
 }
 
@@ -563,12 +552,15 @@ void AudioEngine::shutdown() {
 bool AudioEngine::start() {
     if (!initialized_ || running_) return false;
 
+    // Web Audio createScriptProcessor requires buffer size 256–16384
+    int web_buffer = buffer_size_ < 256 ? 256 : buffer_size_;
+
     SDL_AudioSpec want, have;
     SDL_memset(&want, 0, sizeof(want));
     want.freq = sample_rate_;
     want.format = AUDIO_F32;
     want.channels = 1;
-    want.samples = static_cast<Uint16>(buffer_size_);
+    want.samples = static_cast<Uint16>(web_buffer);
     want.callback = sdl_audio_callback;
     want.userdata = this;
 

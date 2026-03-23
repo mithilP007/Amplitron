@@ -251,6 +251,7 @@ TEST(delay_produces_echo) {
     float late_energy = 0.0f;
     for (int i = 2048; i < 4096; ++i)
         late_energy += buf[i] * buf[i];
+    (void)late_energy;
     // With default delay settings, some echo should appear
     // (might be zero if delay time > buffer length, so just check finite)
 }
