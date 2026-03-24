@@ -3,7 +3,7 @@ build/
 build-*/
 out/
 cmake-build-*/
-
+presets/
 # IDE
 .vs/
 .vscode/

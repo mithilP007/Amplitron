@@ -281,6 +281,24 @@ bool PresetManager::from_json(const std::string& json, PresetData& preset) {
     return true;
 }
 
+bool PresetManager::save_preset_data(const std::string& filepath,
+                                     const PresetData& preset) {
+    std::string json = to_json(preset);
+
+    std::ofstream file(filepath);
+    if (!file.is_open()) {
+        last_error_ = "Could not open file for writing: " + filepath;
+        std::cerr << last_error_ << std::endl;
+        return false;
+    }
+
+    file << json;
+    file.close();
+
+    std::cout << "Preset saved: " << filepath << std::endl;
+    return true;
+}
+
 bool PresetManager::save_preset(const std::string& filepath,
                                  const std::string& preset_name,
                                  const std::string& description,
@@ -302,20 +320,7 @@ bool PresetManager::save_preset(const std::string& filepath,
         preset.effects.push_back(fd);
     }
 
-    std::string json = to_json(preset);
-
-    std::ofstream file(filepath);
-    if (!file.is_open()) {
-        last_error_ = "Could not open file for writing: " + filepath;
-        std::cerr << last_error_ << std::endl;
-        return false;
-    }
-
-    file << json;
-    file.close();
-
-    std::cout << "Preset saved: " << filepath << std::endl;
-    return true;
+    return save_preset_data(filepath, preset);
 }
 
 bool PresetManager::load_preset(const std::string& filepath,

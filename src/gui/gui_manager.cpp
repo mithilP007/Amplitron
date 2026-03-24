@@ -11,6 +11,8 @@
 #include <iostream>
 #include <cstring>
 #include <cmath>
+#include <algorithm>
+#include <cstdio>
 
 #define NANOSVG_IMPLEMENTATION
 #include "nanosvg.h"
@@ -21,6 +23,212 @@ namespace GuitarAmp {
 
 GuiManager::GuiManager(AudioEngine& engine)
     : engine_(engine) {}
+
+std::string GuiManager::preset_name_from_path(const std::string& filepath) const {
+    size_t slash = filepath.find_last_of("/\\");
+    std::string name = (slash == std::string::npos) ? filepath : filepath.substr(slash + 1);
+    if (name.size() > 5 && name.substr(name.size() - 5) == ".json") {
+        name = name.substr(0, name.size() - 5);
+    }
+    return name;
+}
+
+std::string GuiManager::preset_path_from_name(const std::string& preset_name) const {
+    std::string filename = preset_name;
+    for (char& c : filename) {
+        if (c == ' ') c = '_';
+        if (c == '/' || c == '\\' || c == ':' || c == '*' ||
+            c == '?' || c == '"' || c == '<' || c == '>' || c == '|') {
+            c = '_';
+        }
+    }
+    if (filename.empty()) return "";
+    return PresetManager::get_presets_dir() + "/" + filename + ".json";
+}
+
+void GuiManager::refresh_presets(bool preserve_selection) {
+    std::string selected_path;
+    if (preserve_selection && selected_preset_index_ >= 0 &&
+        selected_preset_index_ < static_cast<int>(preset_files_.size())) {
+        selected_path = preset_files_[selected_preset_index_];
+    }
+
+    preset_files_ = PresetManager::list_presets();
+    std::sort(preset_files_.begin(), preset_files_.end());
+
+    selected_preset_index_ = -1;
+    if (!selected_path.empty()) {
+        for (int i = 0; i < static_cast<int>(preset_files_.size()); ++i) {
+            if (preset_files_[i] == selected_path) {
+                selected_preset_index_ = i;
+                break;
+            }
+        }
+    }
+    if (selected_preset_index_ < 0 && !preset_files_.empty()) {
+        selected_preset_index_ = 0;
+    }
+
+    if (selected_preset_index_ >= 0 && selected_preset_index_ < static_cast<int>(preset_files_.size())) {
+        std::snprintf(preset_name_buf_, sizeof(preset_name_buf_), "%s",
+                      preset_name_from_path(preset_files_[selected_preset_index_]).c_str());
+    }
+}
+
+bool GuiManager::save_named_preset(const std::string& preset_name,
+                                   const std::string& description) {
+    if (preset_name.empty()) {
+        preset_status_msg_ = "Error: Preset name cannot be empty.";
+        return false;
+    }
+
+    std::string path = preset_path_from_name(preset_name);
+    if (path.empty()) {
+        preset_status_msg_ = "Error: Invalid preset name.";
+        return false;
+    }
+
+    if (PresetManager::save_preset(path, preset_name, description, engine_)) {
+        preset_status_msg_ = "Saved: " + preset_name;
+        refresh_presets(true);
+        for (int i = 0; i < static_cast<int>(preset_files_.size()); ++i) {
+            if (preset_files_[i] == path) {
+                selected_preset_index_ = i;
+                break;
+            }
+        }
+        if (pedal_board_) pedal_board_->rebuild_widgets();
+        return true;
+    }
+
+    preset_status_msg_ = "Error: " + PresetManager::last_error();
+    return false;
+}
+
+bool GuiManager::load_preset_by_index(int index) {
+    if (index < 0 || index >= static_cast<int>(preset_files_.size())) {
+        preset_status_msg_ = "Error: No preset selected.";
+        return false;
+    }
+
+    const std::string& path = preset_files_[index];
+    std::vector<LoadPresetCommand::EffectSnapshot> before_state;
+    for (auto& fx : engine_.effects()) {
+        LoadPresetCommand::EffectSnapshot snap;
+        snap.effect = fx;
+        snap.enabled = fx->is_enabled();
+        snap.mix = fx->get_mix();
+        for (auto& p : fx->params()) snap.param_values.push_back(p.value);
+        before_state.push_back(std::move(snap));
+    }
+    float before_in = engine_.get_input_gain();
+    float before_out = engine_.get_output_gain();
+
+    if (PresetManager::load_preset(path, engine_)) {
+        std::vector<LoadPresetCommand::EffectSnapshot> after_state;
+        for (auto& fx : engine_.effects()) {
+            LoadPresetCommand::EffectSnapshot snap;
+            snap.effect = fx;
+            snap.enabled = fx->is_enabled();
+            snap.mix = fx->get_mix();
+            for (auto& p : fx->params()) snap.param_values.push_back(p.value);
+            after_state.push_back(std::move(snap));
+        }
+        float after_in = engine_.get_input_gain();
+        float after_out = engine_.get_output_gain();
+
+        command_history_.clear();
+        auto cmd = std::make_unique<LoadPresetCommand>(
+            engine_, std::move(before_state), before_in, before_out,
+            std::move(after_state), after_in, after_out);
+        command_history_.push_executed(std::move(cmd));
+
+        selected_preset_index_ = index;
+        std::string display = preset_name_from_path(path);
+        std::snprintf(preset_name_buf_, sizeof(preset_name_buf_), "%s", display.c_str());
+        preset_status_msg_ = "Loaded: " + display;
+        if (pedal_board_) pedal_board_->rebuild_widgets();
+        return true;
+    }
+
+    preset_status_msg_ = "Error: " + PresetManager::last_error();
+    return false;
+}
+
+bool GuiManager::delete_preset_by_index(int index) {
+    if (index < 0 || index >= static_cast<int>(preset_files_.size())) {
+        preset_status_msg_ = "Error: No preset selected.";
+        return false;
+    }
+
+    std::string path = preset_files_[index];
+    std::string display = preset_name_from_path(path);
+    if (std::remove(path.c_str()) == 0) {
+        preset_status_msg_ = "Deleted: " + display;
+        refresh_presets(false);
+        return true;
+    }
+
+    preset_status_msg_ = "Error: Could not delete preset file.";
+    return false;
+}
+
+void GuiManager::ensure_factory_presets() {
+    if (factory_presets_initialized_) return;
+    factory_presets_initialized_ = true;
+
+    if (!PresetManager::list_presets().empty()) return;
+
+    std::vector<PresetData> factory_presets;
+
+    PresetData clean;
+    clean.name = "Clean";
+    clean.description = "Low gain, slight reverb, flat EQ";
+    clean.input_gain = 0.6f;
+    clean.output_gain = 0.85f;
+    clean.effects.push_back({"Compressor", true, 0.25f, {}});
+    clean.effects.push_back({"Equalizer", true, 1.0f, {}});
+    clean.effects.push_back({"Reverb", true, 0.2f, {}});
+    clean.effects.push_back({"Cabinet", true, 1.0f, {}});
+    factory_presets.push_back(clean);
+
+    PresetData crunch;
+    crunch.name = "Crunch";
+    crunch.description = "Mild overdrive with mid-forward response";
+    crunch.input_gain = 0.85f;
+    crunch.output_gain = 0.9f;
+    crunch.effects.push_back({"Noise Gate", true, 0.35f, {}});
+    crunch.effects.push_back({"Overdrive", true, 0.55f, {}});
+    crunch.effects.push_back({"Equalizer", true, 1.0f, {}});
+    crunch.effects.push_back({"Cabinet", true, 1.0f, {}});
+    factory_presets.push_back(crunch);
+
+    PresetData metal;
+    metal.name = "Metal";
+    metal.description = "High distortion with scooped mids and tight cabinet";
+    metal.input_gain = 1.15f;
+    metal.output_gain = 0.75f;
+    metal.effects.push_back({"Noise Gate", true, 0.85f, {}});
+    metal.effects.push_back({"Distortion", true, 0.9f, {}});
+    metal.effects.push_back({"Equalizer", true, 1.0f, {}});
+    metal.effects.push_back({"Cabinet", true, 1.0f, {}});
+    factory_presets.push_back(metal);
+
+    PresetData jazz;
+    jazz.name = "Jazz";
+    jazz.description = "Clean, warm tone with light compression";
+    jazz.input_gain = 0.55f;
+    jazz.output_gain = 0.9f;
+    jazz.effects.push_back({"Compressor", true, 0.4f, {}});
+    jazz.effects.push_back({"Equalizer", true, 1.0f, {}});
+    jazz.effects.push_back({"Reverb", true, 0.12f, {}});
+    jazz.effects.push_back({"Cabinet", true, 1.0f, {}});
+    factory_presets.push_back(jazz);
+
+    for (const auto& preset : factory_presets) {
+        PresetManager::save_preset_data(preset_path_from_name(preset.name), preset);
+    }
+}
 
 GuiManager::~GuiManager() {
     shutdown();
@@ -240,12 +448,25 @@ bool GuiManager::run_frame() {
 void GuiManager::render_menu_bar() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("New Preset...")) {
+                selected_preset_index_ = -1;
+                preset_name_buf_[0] = '\0';
+                preset_desc_buf_[0] = '\0';
+                preset_dialog_is_new_ = true;
+                show_save_preset_ = true;
+            }
             if (ImGui::MenuItem("Save Preset...", "Ctrl+S")) {
+                preset_dialog_is_new_ = false;
                 show_save_preset_ = true;
             }
             if (ImGui::MenuItem("Load Preset...", "Ctrl+O")) {
                 show_load_preset_ = true;
-                preset_files_ = PresetManager::list_presets();
+                refresh_presets(true);
+            }
+            bool has_selected_preset = selected_preset_index_ >= 0 &&
+                                       selected_preset_index_ < static_cast<int>(preset_files_.size());
+            if (ImGui::MenuItem("Delete Selected Preset", nullptr, false, has_selected_preset)) {
+                delete_preset_by_index(selected_preset_index_);
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Settings")) show_settings_ = true;
@@ -575,32 +796,30 @@ void GuiManager::render_save_preset_popup() {
                                ImVec2(-1, 60));
 
     ImGui::Spacing();
-    if (ImGui::Button("Save", ImVec2(120, 30))) {
-        std::string name(preset_name_buf_);
-        if (!name.empty()) {
-            // Sanitize filename
-            std::string filename = name;
-            for (char& c : filename) {
-                if (c == ' ') c = '_';
-                if (c == '/' || c == '\\' || c == ':' || c == '*' ||
-                    c == '?' || c == '"' || c == '<' || c == '>' || c == '|')
-                    c = '_';
-            }
-            std::string path = PresetManager::get_presets_dir() + "/" + filename + ".json";
-
-            if (PresetManager::save_preset(path, name, std::string(preset_desc_buf_), engine_)) {
-                preset_status_msg_ = "Saved: " + path;
+    if (preset_dialog_is_new_) {
+        if (ImGui::Button("Save", ImVec2(100, 30))) {
+            if (save_named_preset(std::string(preset_name_buf_), std::string(preset_desc_buf_))) {
                 show_save_preset_ = false;
-                // Rebuild pedal board to reflect any changes
-                if (pedal_board_) pedal_board_->rebuild_widgets();
-            } else {
-                preset_status_msg_ = "Error: " + PresetManager::last_error();
             }
         }
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Cancel", ImVec2(120, 30))) {
-        show_save_preset_ = false;
+        ImGui::SameLine();
+        if (ImGui::Button("Don't Save", ImVec2(100, 30))) {
+            show_save_preset_ = false;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(100, 30))) {
+            show_save_preset_ = false;
+        }
+    } else {
+        if (ImGui::Button("Save", ImVec2(120, 30))) {
+            if (save_named_preset(std::string(preset_name_buf_), std::string(preset_desc_buf_))) {
+                show_save_preset_ = false;
+            }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 30))) {
+            show_save_preset_ = false;
+        }
     }
 
     if (!preset_status_msg_.empty()) {
@@ -622,7 +841,7 @@ void GuiManager::render_load_preset_popup() {
     ImGui::Spacing();
 
     if (ImGui::Button("Refresh List")) {
-        preset_files_ = PresetManager::list_presets();
+        refresh_presets(true);
     }
 
     ImGui::Spacing();
@@ -634,53 +853,15 @@ void GuiManager::render_load_preset_popup() {
             PresetManager::get_presets_dir().c_str());
     }
 
-    for (auto& filepath : preset_files_) {
+    for (int i = 0; i < static_cast<int>(preset_files_.size()); ++i) {
+        auto& filepath = preset_files_[i];
         // Show just the filename
-        std::string display = filepath;
-        size_t slash = display.find_last_of("/\\");
-        if (slash != std::string::npos) display = display.substr(slash + 1);
+        std::string display = preset_name_from_path(filepath);
 
-        if (ImGui::Selectable(display.c_str())) {
-            // Capture state before loading for LoadPresetCommand
-            std::vector<LoadPresetCommand::EffectSnapshot> before_state;
-            for (auto& fx : engine_.effects()) {
-                LoadPresetCommand::EffectSnapshot snap;
-                snap.effect = fx;
-                snap.enabled = fx->is_enabled();
-                snap.mix = fx->get_mix();
-                for (auto& p : fx->params()) snap.param_values.push_back(p.value);
-                before_state.push_back(std::move(snap));
-            }
-            float before_in = engine_.get_input_gain();
-            float before_out = engine_.get_output_gain();
-
-            if (PresetManager::load_preset(filepath, engine_)) {
-                // Capture state after loading
-                std::vector<LoadPresetCommand::EffectSnapshot> after_state;
-                for (auto& fx : engine_.effects()) {
-                    LoadPresetCommand::EffectSnapshot snap;
-                    snap.effect = fx;
-                    snap.enabled = fx->is_enabled();
-                    snap.mix = fx->get_mix();
-                    for (auto& p : fx->params()) snap.param_values.push_back(p.value);
-                    after_state.push_back(std::move(snap));
-                }
-                float after_in = engine_.get_input_gain();
-                float after_out = engine_.get_output_gain();
-
-                // Clear history and record the load as the first undoable action
-                command_history_.clear();
-                auto cmd = std::make_unique<LoadPresetCommand>(
-                    engine_, std::move(before_state), before_in, before_out,
-                    std::move(after_state), after_in, after_out);
-                command_history_.push_executed(std::move(cmd));
-
-                preset_status_msg_ = "Loaded: " + display;
+        bool is_selected = (i == selected_preset_index_);
+        if (ImGui::Selectable(display.c_str(), is_selected)) {
+            if (load_preset_by_index(i)) {
                 show_load_preset_ = false;
-                // Rebuild pedal board widgets to match new chain
-                if (pedal_board_) pedal_board_->rebuild_widgets();
-            } else {
-                preset_status_msg_ = "Error: " + PresetManager::last_error();
             }
         }
     }
@@ -752,7 +933,7 @@ void GuiManager::render_recording_controls() {
         } else {
             float blink = (std::sin(t * 4.0f) > 0.0f) ? 1.0f : 0.3f;
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.15f, 0.15f, blink));
-            ImGui::Text("  ●  REC");
+            ImGui::Text("  REC");
             ImGui::PopStyleColor();
         }
 
@@ -862,7 +1043,7 @@ void GuiManager::render_recording_controls() {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.05f, 0.05f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.1f, 0.1f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.9f, 0.15f, 0.15f, 1.0f));
-        if (ImGui::Button("●  REC", ImVec2(90, 28))) {
+        if (ImGui::Button("REC", ImVec2(90, 28))) {
             std::string filepath = Recorder::generate_filename();
             rec.start(filepath, engine_.get_sample_rate());
         }

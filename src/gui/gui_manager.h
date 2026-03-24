@@ -80,6 +80,15 @@ private:
     /** @brief Render the "Save Recording" file dialog. */
     void render_recording_save_dialog();
 
+    void refresh_presets(bool preserve_selection = true);
+    bool save_named_preset(const std::string& preset_name,
+                           const std::string& description);
+    bool load_preset_by_index(int index);
+    bool delete_preset_by_index(int index);
+    std::string preset_name_from_path(const std::string& filepath) const;
+    std::string preset_path_from_name(const std::string& preset_name) const;
+    void ensure_factory_presets();
+
     AudioEngine& engine_;
     CommandHistory command_history_;
     SDL_Window* window_ = nullptr;
@@ -97,6 +106,9 @@ private:
     char preset_name_buf_[128] = "My Preset";
     char preset_desc_buf_[256] = "";
     std::vector<std::string> preset_files_;
+    int selected_preset_index_ = -1;
+    bool factory_presets_initialized_ = false;
+    bool preset_dialog_is_new_ = false;
     std::string preset_status_msg_;
 
     // Smoothed meter values

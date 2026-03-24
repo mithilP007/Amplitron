@@ -24,6 +24,10 @@ struct PresetData {
 
 class PresetManager {
 public:
+    // Save provided preset data to JSON file
+    static bool save_preset_data(const std::string& filepath,
+                                 const PresetData& preset);
+
     // Save current engine state to JSON file
     static bool save_preset(const std::string& filepath,
                             const std::string& preset_name,
