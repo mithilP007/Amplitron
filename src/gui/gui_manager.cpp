@@ -14,10 +14,13 @@
 #include <algorithm>
 #include <cstdio>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #define NANOSVG_IMPLEMENTATION
 #include "nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
 #include "nanosvgrast.h"
+#pragma GCC diagnostic pop
 
 namespace GuitarAmp {
 
@@ -27,7 +30,7 @@ GuiManager::GuiManager(AudioEngine& engine)
       gui_presets_(engine, command_history_),
       gui_recording_(engine),
       gui_tuner_(engine, std::make_shared<TunerPedal>()),
-      gui_analyzer_(std::make_unique<GuiAnalyzer>(engine)) {}
+      gui_analyzer_(engine) {}
 
 GuiManager::~GuiManager() {
     shutdown();
@@ -253,7 +256,7 @@ bool GuiManager::run_frame() {
 
     ImGui::Separator();
 
-    float analyzer_reserved_h = gui_analyzer_->is_expanded() ? 245.0f : 38.0f;
+    float analyzer_reserved_h = gui_analyzer_.analyzer_reserved_height();
     ImGui::BeginChild("PedalBoardRegion", ImVec2(0, -analyzer_reserved_h), false);
     if (pedal_board_) {
         pedal_board_->render();
@@ -261,7 +264,7 @@ bool GuiManager::run_frame() {
     ImGui::EndChild();
 
     ImGui::Separator();
-    gui_analyzer_->render();
+    gui_analyzer_.render();
 
     ImGui::End();
 

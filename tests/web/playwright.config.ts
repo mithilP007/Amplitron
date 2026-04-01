@@ -65,7 +65,7 @@ export default defineConfig({
 
   webServer: {
     command: `node "${serverScript}"`,
-    env: { WEB_BUILD_DIR: webBuildDir },
+    env: { ...process.env, WEB_BUILD_DIR: webBuildDir },
     url: 'http://127.0.0.1:8080',
     reuseExistingServer: !process.env.CI,
     // Allow up to 30 s for the server process to become ready

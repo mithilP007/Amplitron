@@ -118,7 +118,7 @@ inline std::string formatParameterValue(float value, const std::string& unit) {
     } else if (unit == "%" || unit == "pct") {
         snprintf(buf, sizeof(buf), "%.0f%%", value);
     } else if (unit == "ms") {
-        snprintf(buf, sizeof(buf), "%.0f ms", value);
+        snprintf(buf, sizeof(buf), "%.1f ms", value);
     } else if (unit == "s") {
         snprintf(buf, sizeof(buf), "%.2f s", value);
     } else if (!unit.empty()) {

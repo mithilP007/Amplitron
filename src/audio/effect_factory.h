@@ -2,6 +2,7 @@
 
 #include "audio/effect.h"
 #include <functional>
+#include <stdexcept>
 #include <unordered_map>
 #include <string>
 
@@ -22,7 +23,10 @@ public:
     }
 
     void register_effect(const std::string& type_name, Creator creator) {
-        creators_[type_name] = std::move(creator);
+        if (creators_.count(type_name) > 0) {
+            throw std::runtime_error("Duplicate effect registration: " + type_name);
+        }
+        creators_.emplace(type_name, std::move(creator));
     }
 
     std::shared_ptr<Effect> create(const std::string& type_name) const {

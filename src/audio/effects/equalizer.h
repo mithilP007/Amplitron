@@ -21,6 +21,12 @@ private:
     Biquad mid_peak_;
     Biquad high_shelf_;
 
+    // One-pole smoothing states (avoids zipper noise on UI parameter jumps)
+    float bass_state_ = 0.0f;
+    float mid_state_ = 0.0f;
+    float treble_state_ = 0.0f;
+    float presence_state_ = 0.0f;
+
     // Cached parameter values for dirty-check
     float cached_bass_ = -999.0f;
     float cached_mid_ = -999.0f;

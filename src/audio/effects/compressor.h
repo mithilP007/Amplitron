@@ -16,6 +16,8 @@ public:
 private:
     std::vector<EffectParam> params_;
     EnvelopeFollower env_;
+    float smoothed_attack_ms_ = 5.0f;    // matches default param
+    float smoothed_release_ms_ = 100.0f; // matches default param
 };
 
 } // namespace GuitarAmp

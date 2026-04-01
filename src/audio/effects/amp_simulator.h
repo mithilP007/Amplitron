@@ -76,6 +76,11 @@ private:
     // DC blocking high-pass state
     OnePole dc_block_;
 
+    // One-pole smoothing states for trim parameters (avoids coefficient click on UI change)
+    float bass_trim_state_ = 0.0f;
+    float mid_trim_state_ = 0.0f;
+    float treble_trim_state_ = 0.0f;
+
     // Cached model index for dirty-check coefficient recomputation
     int cached_model_index_ = -1;
     float cached_bass_ = -999.0f;

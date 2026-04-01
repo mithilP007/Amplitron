@@ -24,7 +24,8 @@ void NoiseGate::process(float* buffer, int num_samples) {
         float envelope = env_.process(buffer[i], attack_coeff, release_coeff);
 
         float target_gain = (envelope > threshold) ? 1.0f : 0.0f;
-        gain_ += (target_gain - gain_) * 0.01f;
+        float gain_coeff = (target_gain > gain_) ? attack_coeff : release_coeff;
+        gain_ += (target_gain - gain_) * (1.0f - gain_coeff);
         buffer[i] *= gain_;
     }
 }

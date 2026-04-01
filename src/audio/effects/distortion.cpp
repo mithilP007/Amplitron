@@ -29,11 +29,15 @@ void Distortion::process(float* buffer, int num_samples) {
         // Apply drive gain
         float x = buffer[i] * drive;
 
-        // Hard clipping with asymmetric waveshaping
-        x = fast_tanh(x);
+        // Soft path (tube-like via tanh + soft clip)
+        float x_soft = soft_clip(fast_tanh(x) * 1.5f);
 
-        // Additional harmonic content via soft clip
-        x = soft_clip(x * 1.5f);
+        // Hard path (hard clip at unity)
+        float x_hard = hard_clip(x, 1.0f);
+
+        // Blend: more drive → more hard clipping
+        float hard_amount = (drive - 1.0f) / 19.0f; // 0 at drive=1, 1 at drive=20
+        x = x_soft * (1.0f - hard_amount) + x_hard * hard_amount;
 
         // Tone filter (one-pole LP)
         x = tone_lp_.lp(x, lp_coeff);

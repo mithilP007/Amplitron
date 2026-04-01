@@ -83,7 +83,7 @@ void GuiRecording::render_controls() {
                            peak > 0.0001f ? 20.0f * std::log10(peak) : -96.0f);
 
         ImGui::SameLine(ImGui::GetContentRegionAvail().x - 120);
-        int64_t file_bytes = rec.get_samples_written() * 2; // 16-bit PCM
+        int64_t file_bytes = rec.get_samples_written() * 2 * rec.get_channels(); // 16-bit PCM
         if (file_bytes > 1024 * 1024)
             ImGui::Text("%.1f MB", file_bytes / (1024.0f * 1024.0f));
         else

@@ -86,6 +86,10 @@ AmpSimulator::AmpSimulator() {
 
 void AmpSimulator::set_sample_rate(int sample_rate) {
     Effect::set_sample_rate(sample_rate);
+    // Snap smoothing states to current params to avoid transient on rate change
+    bass_trim_state_ = params_[2].value;
+    mid_trim_state_ = params_[3].value;
+    treble_trim_state_ = params_[4].value;
     cached_model_index_ = -1; // force recompute
     recompute_coefficients_if_dirty();
 }
@@ -93,9 +97,9 @@ void AmpSimulator::set_sample_rate(int sample_rate) {
 void AmpSimulator::recompute_coefficients_if_dirty() {
     int model_idx = clamp(static_cast<int>(params_[0].value + 0.5f),
                           0, static_cast<int>(get_amp_models().size()) - 1);
-    float bass_trim = params_[2].value;
-    float mid_trim = params_[3].value;
-    float treble_trim = params_[4].value;
+    float bass_trim = bass_trim_state_;
+    float mid_trim = mid_trim_state_;
+    float treble_trim = treble_trim_state_;
     float gain_knob = params_[1].value;
 
     if (model_idx != cached_model_index_ ||
@@ -119,6 +123,12 @@ void AmpSimulator::recompute_coefficients_if_dirty() {
 
 void AmpSimulator::process(float* buffer, int num_samples) {
     if (!enabled_) return;
+
+    // One-pole smoothing: advance trim states toward raw param targets each block
+    const float alpha = 1.0f - std::exp(-1.0f / (sample_rate_ * 0.010f)); // 10 ms
+    bass_trim_state_   += alpha * (params_[2].value - bass_trim_state_);
+    mid_trim_state_    += alpha * (params_[3].value - mid_trim_state_);
+    treble_trim_state_ += alpha * (params_[4].value - treble_trim_state_);
 
     recompute_coefficients_if_dirty();
 

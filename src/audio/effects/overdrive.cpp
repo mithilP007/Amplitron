@@ -16,9 +16,14 @@ Overdrive::Overdrive() {
 void Overdrive::process(float* buffer, int num_samples) {
     if (!enabled_) return;
 
-    float drive = params_[0].value;
-    float tone = params_[1].value;
-    float level = params_[2].value;
+    const float alpha = 1.0f - std::exp(-1.0f / (sample_rate_ * 0.010f)); // 10 ms
+    smoothed_drive_ += alpha * (params_[0].value - smoothed_drive_);
+    smoothed_tone_  += alpha * (params_[1].value - smoothed_tone_);
+    smoothed_level_ += alpha * (params_[2].value - smoothed_level_);
+
+    float drive = smoothed_drive_;
+    float tone = smoothed_tone_;
+    float level = smoothed_level_;
 
     float lp_coeff = 0.05f + tone * 0.9f;
 

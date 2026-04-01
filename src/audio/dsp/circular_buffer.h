@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <cmath>
 
 namespace GuitarAmp {
 
@@ -14,38 +15,40 @@ public:
     CircularBuffer() = default;
 
     void resize(int size) {
+        if (size <= 0) size = 1;
         buffer_.assign(size, 0.0f);
         write_pos_ = 0;
         size_ = size;
     }
 
+    // Returns a valid index in [0, size_-1] for any signed input.
+    int normalize_index(int idx) const {
+        return ((idx % size_) + size_) % size_;
+    }
+
     void write(float sample) {
         buffer_[write_pos_] = sample;
-        write_pos_ = (write_pos_ + 1) % size_;
+        write_pos_ = normalize_index(write_pos_ + 1);
     }
 
     float read(int delay) const {
-        int pos = write_pos_ - delay - 1;
-        if (pos < 0) pos += size_;
-        return buffer_[pos];
+        return buffer_[normalize_index(write_pos_ - delay - 1)];
     }
 
     float read_at(int index) const {
-        return buffer_[index % size_];
+        return buffer_[normalize_index(index)];
     }
 
     void write_at(int index, float sample) {
-        buffer_[index % size_] = sample;
+        buffer_[normalize_index(index)] = sample;
     }
 
     float read_linear(float delay) const {
         float read_pos_f = static_cast<float>(write_pos_) - delay - 1.0f;
-        if (read_pos_f < 0.0f) read_pos_f += size_;
-
-        int pos0 = static_cast<int>(read_pos_f) % size_;
-        int pos1 = (pos0 + 1) % size_;
-        float frac = read_pos_f - static_cast<int>(read_pos_f);
-
+        int pos_int = static_cast<int>(std::floor(read_pos_f));
+        int pos0 = normalize_index(pos_int);
+        int pos1 = normalize_index(pos_int + 1);
+        float frac = read_pos_f - static_cast<float>(pos_int);
         return buffer_[pos0] * (1.0f - frac) + buffer_[pos1] * frac;
     }
 

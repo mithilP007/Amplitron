@@ -69,7 +69,7 @@ private:
     GuiPresets gui_presets_;
     GuiRecording gui_recording_;
     GuiTuner gui_tuner_;
-    std::unique_ptr<GuiAnalyzer> gui_analyzer_;
+    GuiAnalyzer gui_analyzer_;
 
     // Update checking
     void check_for_updates();

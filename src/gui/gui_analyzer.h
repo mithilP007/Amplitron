@@ -21,6 +21,9 @@ public:
     /** @brief Whether the panel is expanded (affects layout). */
     bool is_expanded() const { return expanded_; }
 
+    /** @brief Height to reserve in the parent layout for this panel. */
+    float analyzer_reserved_height() const { return expanded_ ? 245.0f : 38.0f; }
+
 private:
     void render_vu_bar(const char* id,
                        const char* label,
