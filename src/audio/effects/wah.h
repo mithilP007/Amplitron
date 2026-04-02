@@ -28,6 +28,15 @@ private:
 
     // Smoothed Q / resonance (avoids zipper noise on knob moves)
     float q_smooth_ = 3.5f;
+
+    // Cached parameter snapshot used when params_mutex cannot be acquired.
+    // Initialised to the same defaults as the params_ vector.
+    bool  cached_is_auto_  = false;
+    float cached_sweep_    = 0.5f;
+    float cached_q_        = 3.5f;
+    float cached_sens_     = 0.5f;
+    float cached_atk_ms_   = 5.0f;
+    float cached_rel_ms_   = 100.0f;
 };
 
 } // namespace GuitarAmp

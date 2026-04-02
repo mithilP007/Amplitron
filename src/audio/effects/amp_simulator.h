@@ -80,6 +80,8 @@ private:
     float bass_trim_state_ = 0.0f;
     float mid_trim_state_ = 0.0f;
     float treble_trim_state_ = 0.0f;
+    float gain_smoothed_ = 0.5f;
+    float level_smoothed_ = 0.7f;
 
     // Cached model index for dirty-check coefficient recomputation
     int cached_model_index_ = -1;

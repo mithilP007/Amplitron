@@ -290,7 +290,10 @@ bool PedalWidget::render() {
             ImGui::InvisibleButton("##tuner_mute_toggle", ml_size);
             if (ImGui::IsItemClicked()) {
                 float new_val = mute_on ? 0.0f : 1.0f;
-                effect_->params()[0].value = new_val;
+                {
+                    std::lock_guard<std::mutex> lock(effect_->params_mutex);
+                    effect_->params()[0].value = new_val;
+                }
                 engine_.push_param_change(index_, 0, new_val);
             }
             if (ImGui::IsItemHovered()) {
@@ -407,7 +410,10 @@ bool PedalWidget::render() {
 
                 float new_val = clamp(params[pi].value + value_delta, params[pi].min_val, params[pi].max_val);
                 if (new_val != params[pi].value) {
-                    params[pi].value = new_val;
+                    {
+                        std::lock_guard<std::mutex> lock(effect_->params_mutex);
+                        params[pi].value = new_val;
+                    }
                     engine_.push_param_change(index_, pi, new_val);
                 }
             }
@@ -436,7 +442,10 @@ bool PedalWidget::render() {
             float new_val = clamp(params[pi].value + ImGui::GetIO().MouseWheel * step,
                                     params[pi].min_val, params[pi].max_val);
             if (new_val != old_val) {
-                params[pi].value = new_val;
+                {
+                    std::lock_guard<std::mutex> lock(effect_->params_mutex);
+                    params[pi].value = new_val;
+                }
                 engine_.push_param_change(index_, pi, new_val);
                 commit_param_change(pi, old_val, new_val);
             }
@@ -447,7 +456,10 @@ bool PedalWidget::render() {
             float old_val = params[pi].value;
             float new_val = params[pi].default_val;
             if (new_val != old_val) {
-                params[pi].value = new_val;
+                {
+                    std::lock_guard<std::mutex> lock(effect_->params_mutex);
+                    params[pi].value = new_val;
+                }
                 engine_.push_param_change(index_, pi, new_val);
                 commit_param_change(pi, old_val, new_val);
             }
@@ -460,8 +472,15 @@ bool PedalWidget::render() {
         if (ImGui::BeginPopup(label)) {
             ImGui::Text("%s", params[pi].name.c_str());
             ImGui::SetNextItemWidth(120);
-            ImGui::SliderFloat("##edit", &params[pi].value,
+            // Use a local copy so ImGui's pointer write doesn't race with the
+            // audio thread; commit under lock only when the value changes.
+            float slider_val = params[pi].value;
+            ImGui::SliderFloat("##edit", &slider_val,
                                params[pi].min_val, params[pi].max_val, "%.2f");
+            if (slider_val != params[pi].value) {
+                std::lock_guard<std::mutex> lock(effect_->params_mutex);
+                params[pi].value = slider_val;
+            }
             if (ImGui::IsItemActivated()) {
                 popup_active_param_index_ = pi;
                 popup_param_value_before_edit_ = params[pi].value;
@@ -477,7 +496,10 @@ bool PedalWidget::render() {
                 float old_val = params[pi].value;
                 float new_val = params[pi].default_val;
                 if (new_val != old_val) {
-                    params[pi].value = new_val;
+                    {
+                        std::lock_guard<std::mutex> lock(effect_->params_mutex);
+                        params[pi].value = new_val;
+                    }
                     engine_.push_param_change(index_, pi, new_val);
                     commit_param_change(pi, old_val, new_val);
                 }

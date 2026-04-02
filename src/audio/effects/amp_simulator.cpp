@@ -90,6 +90,8 @@ void AmpSimulator::set_sample_rate(int sample_rate) {
     bass_trim_state_ = params_[2].value;
     mid_trim_state_ = params_[3].value;
     treble_trim_state_ = params_[4].value;
+    gain_smoothed_   = params_[1].value;
+    level_smoothed_  = params_[5].value;
     cached_model_index_ = -1; // force recompute
     recompute_coefficients_if_dirty();
 }
@@ -129,6 +131,8 @@ void AmpSimulator::process(float* buffer, int num_samples) {
     bass_trim_state_   += alpha * (params_[2].value - bass_trim_state_);
     mid_trim_state_    += alpha * (params_[3].value - mid_trim_state_);
     treble_trim_state_ += alpha * (params_[4].value - treble_trim_state_);
+    gain_smoothed_     += alpha * (params_[1].value - gain_smoothed_);
+    level_smoothed_    += alpha * (params_[5].value - level_smoothed_);
 
     recompute_coefficients_if_dirty();
 
@@ -136,8 +140,8 @@ void AmpSimulator::process(float* buffer, int num_samples) {
                           0, static_cast<int>(get_amp_models().size()) - 1);
     const AmpModel& model = get_amp_models()[model_idx];
 
-    float gain_knob = params_[1].value;
-    float level = params_[5].value;
+    float gain_knob = gain_smoothed_;
+    float level = level_smoothed_;
 
     // Effective preamp gain: model base * user gain control (0-2x range)
     float effective_gain = model.preamp_gain * (0.2f + gain_knob * 1.8f);

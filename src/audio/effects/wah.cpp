@@ -19,12 +19,27 @@ WahPedal::WahPedal() {
 void WahPedal::process(float* buffer, int num_samples) {
     if (!enabled_) return;
 
-    bool is_auto   = (params_[0].value > 0.5f);
-    float sweep    = params_[1].value;
-    float q        = params_[2].value;
-    float sens     = params_[3].value;
-    float atk_ms   = params_[4].value;
-    float rel_ms   = params_[5].value;
+    // Attempt a non-blocking parameter snapshot. If the UI thread is holding
+    // params_mutex (writing a knob value), use the previously cached values so
+    // the audio callback never blocks. sweep_smooth_ / q_smooth_ continue to
+    // track cached_sweep_ / cached_q_ through one-pole smoothing, providing a
+    // seamless fallback even across multiple missed updates.
+    if (params_mutex.try_lock()) {
+        cached_is_auto_ = (params_[0].value > 0.5f);
+        cached_sweep_   = params_[1].value;
+        cached_q_       = params_[2].value;
+        cached_sens_    = params_[3].value;
+        cached_atk_ms_  = params_[4].value;
+        cached_rel_ms_  = params_[5].value;
+        params_mutex.unlock();
+    }
+
+    bool is_auto   = cached_is_auto_;
+    float sweep    = cached_sweep_;
+    float q        = cached_q_;
+    float sens     = cached_sens_;
+    float atk_ms   = cached_atk_ms_;
+    float rel_ms   = cached_rel_ms_;
 
     float atk_coeff = EnvelopeFollower::time_to_coeff(atk_ms, sample_rate_);
     float rel_coeff = EnvelopeFollower::time_to_coeff(rel_ms, sample_rate_);
@@ -74,11 +89,19 @@ void WahPedal::process(float* buffer, int num_samples) {
 }
 
 void WahPedal::reset() {
-    svf_lp_      = 0.0f;
-    svf_bp_      = 0.0f;
+    svf_lp_       = 0.0f;
+    svf_bp_       = 0.0f;
     env_.reset();
     sweep_smooth_ = 0.5f;
-    q_smooth_    = 3.5f;
+    q_smooth_     = 3.5f;
+    // Seed the cache from the current param values so the first audio callback
+    // has valid data even if the UI thread hasn't released params_mutex yet.
+    cached_is_auto_ = (params_[0].value > 0.5f);
+    cached_sweep_   = params_[1].value;
+    cached_q_       = params_[2].value;
+    cached_sens_    = params_[3].value;
+    cached_atk_ms_  = params_[4].value;
+    cached_rel_ms_  = params_[5].value;
 }
 
 } // namespace GuitarAmp

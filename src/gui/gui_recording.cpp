@@ -2,6 +2,7 @@
 #include "gui/file_dialog.h"
 #include "gui/theme.h"
 #include <imgui.h>
+#include <algorithm>
 #include <cmath>
 
 namespace GuitarAmp {
@@ -43,7 +44,6 @@ void GuiRecording::render_controls() {
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
         if (ImGui::Button("STOP", ImVec2(80, 28))) {
             rec.stop();
-            rec.write_metadata(rec.filepath(), engine_);
             show_recording_save_ = true;
             recording_save_pending_ = true;
         }
@@ -116,7 +116,7 @@ void GuiRecording::render_controls() {
         ImU32 wave_color_bright = is_paused ? IM_COL32(220, 200, 80, 255)
                                              : IM_COL32(255, 100, 70, 255);
 
-        int num_bars = static_cast<int>(wave_w);
+        int num_bars = std::max(1, static_cast<int>(wave_w));
         float samples_per_pixel = static_cast<float>(Recorder::WAVEFORM_SIZE) / num_bars;
 
         for (int i = 0; i < num_bars; ++i) {
@@ -210,6 +210,7 @@ void GuiRecording::render_save_dialog(bool& show) {
 
     if (!dest.empty()) {
         if (rec.save_to(dest)) {
+            rec.write_metadata(dest, engine_);
             status_msg_ = "Saved: " + dest;
         } else {
             status_msg_ = "Failed to save recording.";
