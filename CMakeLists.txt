@@ -112,6 +112,8 @@ set(APP_SOURCES
     src/audio/effects/amp_simulator.cpp
     src/audio/effects/tuner.cpp
     src/audio/effects/wah.cpp
+    src/audio/effects/octaver.cpp
+    src/audio/effects/pitch_shifter.cpp
     src/gui/gui_manager.cpp
     src/gui/gui_settings.cpp
     src/gui/gui_presets.cpp
@@ -259,6 +261,8 @@ else() # NOT EMSCRIPTEN
         src/audio/effects/amp_simulator.cpp
         src/audio/effects/tuner.cpp
         src/audio/effects/wah.cpp
+        src/audio/effects/octaver.cpp
+        src/audio/effects/pitch_shifter.cpp
     )
 
     add_executable(amplitron-tests ${TEST_SOURCES} ${CORE_SOURCES})

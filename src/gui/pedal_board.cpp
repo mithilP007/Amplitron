@@ -16,6 +16,8 @@
 #include "audio/effects/cabinet_sim.h"
 #include "audio/effects/amp_simulator.h"
 #include "audio/effects/wah.h"
+#include "audio/effects/octaver.h"
+#include "audio/effects/pitch_shifter.h"
 #include <cstring>
 #include <cstdio>
 #include <set>
@@ -193,6 +195,15 @@ void PedalBoard::render_add_pedal_menu() {
         ImGui::TextColored(ImVec4(0.30f, 0.75f, 0.60f, 1.0f), "FILTER");
         if (ImGui::MenuItem("Wah")) {
             add_effect_and_show(std::make_shared<WahPedal>());
+        }
+
+        ImGui::Separator();
+        ImGui::TextColored(ImVec4(0.85f, 0.40f, 0.55f, 1.0f), "PITCH");
+        if (ImGui::MenuItem("Octaver")) {
+            add_effect_and_show(std::make_shared<Octaver>());
+        }
+        if (ImGui::MenuItem("Pitch Shifter")) {
+            add_effect_and_show(std::make_shared<PitchShifter>());
         }
 
         ImGui::Separator();
