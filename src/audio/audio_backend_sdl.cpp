@@ -14,7 +14,7 @@
 #include <cctype>
 #include <algorithm>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 // -----------------------------------------------------------------------------
 // Backend state
@@ -238,4 +238,4 @@ std::vector<AudioDeviceInfo> AudioEngine::get_output_devices() const {
 bool AudioEngine::set_input_device(int) { return true; }
 bool AudioEngine::set_output_device(int) { return true; }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

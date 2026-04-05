@@ -3,7 +3,7 @@
 #include "audio/effect.h"
 #include "audio/dsp/biquad.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class CabinetSim : public Effect {
 public:
@@ -21,4 +21,4 @@ private:
     Biquad peak_; // resonance bump
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

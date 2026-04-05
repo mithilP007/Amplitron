@@ -24,7 +24,7 @@
 
 #include <imgui.h>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /** @brief Construct PedalBoard and build initial widget list from engine state. */
 PedalBoard::PedalBoard(AudioEngine& engine, CommandHistory& history)
@@ -370,4 +370,4 @@ void PedalBoard::render_signal_chain() {
     ImGui::Dummy(ImVec2(total_width + 20, 340));
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

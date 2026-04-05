@@ -86,7 +86,7 @@ jobs:
     - name: Prepare Files
       run: |
         mkdir -p staging
-        cp artifacts/windows/guitar-amp.exe staging/Amplitron.exe
+        cp artifacts/windows/amplitron.exe staging/Amplitron.exe
         cp artifacts/windows/*.dll staging/ 2>/dev/null || true
         cp README.md staging/
         cp -r assets staging/ || true
@@ -145,7 +145,7 @@ jobs:
         mkdir -p Amplitron.app/Contents/Frameworks
 
         # Copy binary
-        cp artifacts/macos/guitar-amp Amplitron.app/Contents/MacOS/Amplitron
+        cp artifacts/macos/amplitron Amplitron.app/Contents/MacOS/Amplitron
         chmod +x Amplitron.app/Contents/MacOS/Amplitron
 
         # Copy ALL bundled dylibs from CI
@@ -255,7 +255,7 @@ jobs:
     - name: Package
       run: |
         mkdir -p Amplitron-Linux
-        cp artifacts/linux/guitar-amp Amplitron-Linux/amplitron
+        cp artifacts/linux/amplitron Amplitron-Linux/amplitron
         chmod +x Amplitron-Linux/amplitron
         cp README.md Amplitron-Linux/
         cp -r assets Amplitron-Linux/ || true

@@ -21,7 +21,7 @@
 #define STAT_FN     stat
 #endif
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 std::string PresetManager::last_error_;
 std::string PresetManager::custom_presets_dir_;
@@ -519,4 +519,4 @@ bool PresetManager::load_preset(const std::string& filepath,
     return true;
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

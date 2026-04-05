@@ -3,7 +3,7 @@
 #include "audio/effect.h"
 #include "audio/dsp/biquad.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * @brief Describes the tonal character of an amp model.
@@ -93,4 +93,4 @@ private:
     void recompute_coefficients_if_dirty();
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

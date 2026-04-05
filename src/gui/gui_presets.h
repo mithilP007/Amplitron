@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class PedalBoard;
 
@@ -66,4 +66,4 @@ private:
     std::string preset_status_msg_;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

@@ -11,7 +11,7 @@
 #include <cstdio>
 #include <cstring>
 
-using namespace GuitarAmp;
+using namespace Amplitron;
 
 // Helper: check if file exists
 static bool file_exists(const std::string& path) {

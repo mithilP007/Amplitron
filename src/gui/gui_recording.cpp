@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 void GuiRecording::render_controls() {
     auto& rec = engine_.recorder();
@@ -218,4 +218,4 @@ void GuiRecording::render_save_dialog(bool& show) {
     }
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

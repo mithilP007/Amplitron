@@ -10,7 +10,7 @@ $releaseDir = "release/Amplitron-Windows"
 New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
 
 # Copy executable
-Copy-Item "build/guitar-amp.exe" "$releaseDir/Amplitron.exe"
+Copy-Item "build/amplitron.exe" "$releaseDir/Amplitron.exe"
 
 # Copy documentation
 Copy-Item "README.md" "$releaseDir/"

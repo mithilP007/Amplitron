@@ -3,7 +3,7 @@
 #include "audio/effect.h"
 #include "audio/dsp/envelope_follower.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class Compressor : public Effect {
 public:
@@ -20,4 +20,4 @@ private:
     float smoothed_release_ms_ = 100.0f; // matches default param
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

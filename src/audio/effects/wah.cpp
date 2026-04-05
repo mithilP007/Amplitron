@@ -1,7 +1,7 @@
 #include "audio/effects/wah.h"
 #include "audio/effect_factory.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<WahPedal> reg("Wah");
 
@@ -81,4 +81,4 @@ void WahPedal::reset() {
     q_smooth_     = 3.5f;
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

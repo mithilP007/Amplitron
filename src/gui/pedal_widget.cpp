@@ -8,7 +8,7 @@
 #include <cstring>
 #include <cmath>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /** @brief Construct PedalWidget and look up color scheme for the effect type. */
 PedalWidget::PedalWidget(AudioEngine& engine, std::shared_ptr<Effect> effect, int index)
@@ -648,4 +648,4 @@ void PedalWidget::commit_param_change(int param_index, float old_val, float new_
     history_->push_executed(std::move(cmd));
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

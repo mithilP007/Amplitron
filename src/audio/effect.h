@@ -3,7 +3,7 @@
 #include "common.h"
 #include <cstring>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 struct EffectParam {
     std::string name;
@@ -54,4 +54,4 @@ protected:
     }
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

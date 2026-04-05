@@ -2,7 +2,7 @@
 
 #include <memory>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * @brief Opaque, platform-specific audio backend state.
@@ -20,4 +20,4 @@ AudioBackendState* create_audio_backend();
 /** @brief Destroy platform backend state created by create_audio_backend(). */
 void destroy_audio_backend(AudioBackendState* state);
 
-} // namespace GuitarAmp
+} // namespace Amplitron

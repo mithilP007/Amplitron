@@ -11,7 +11,7 @@ mkdir -p "$APP_DIR/Contents/MacOS"
 mkdir -p "$APP_DIR/Contents/Resources"
 
 # Copy executable
-cp build/guitar-amp "$APP_DIR/Contents/MacOS/Amplitron"
+cp build/amplitron "$APP_DIR/Contents/MacOS/Amplitron"
 chmod +x "$APP_DIR/Contents/MacOS/Amplitron"
 
 # Copy resources

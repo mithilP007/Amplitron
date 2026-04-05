@@ -10,7 +10,7 @@ RELEASE_DIR="release/Amplitron-Linux"
 mkdir -p "$RELEASE_DIR"
 
 # Copy executable
-cp build/guitar-amp "$RELEASE_DIR/amplitron"
+cp build/amplitron "$RELEASE_DIR/amplitron"
 chmod +x "$RELEASE_DIR/amplitron"
 
 # Copy documentation

@@ -2,7 +2,7 @@
 #include "audio/effect_factory.h"
 #include <cmath>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<Flanger> reg("Flanger");
 
@@ -147,4 +147,4 @@ void Flanger::reset() {
     lfo_phase_   = 0.0f;
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

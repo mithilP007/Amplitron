@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * @brief Manages undo and redo stacks for Command objects.
@@ -96,4 +96,4 @@ private:
     int max_depth_;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

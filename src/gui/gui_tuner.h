@@ -5,7 +5,7 @@
 #include <memory>
 #include <utility>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * @brief Handles the chromatic tuner modal UI.
@@ -30,4 +30,4 @@ private:
     std::shared_ptr<TunerPedal> tuner_;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

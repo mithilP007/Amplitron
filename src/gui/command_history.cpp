@@ -1,6 +1,6 @@
 #include "gui/command_history.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /** @brief Execute cmd, attempt coalescing, push to undo stack, clear redo. */
 void CommandHistory::execute(std::unique_ptr<Command> cmd) {
@@ -80,4 +80,4 @@ void CommandHistory::trim() {
     }
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

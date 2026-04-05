@@ -46,9 +46,9 @@ try {
 
     Write-Host "`n=== Build Successful ===" -ForegroundColor Green
 
-    $exe_path = Join-Path $BUILD_DIR "$BuildType\guitar-amp.exe"
+    $exe_path = Join-Path $BUILD_DIR "$BuildType\amplitron.exe"
     if (-Not (Test-Path $exe_path)) {
-        $exe_path = Join-Path $BUILD_DIR "guitar-amp.exe"
+        $exe_path = Join-Path $BUILD_DIR "amplitron.exe"
     }
     Write-Host "Binary: $exe_path"
 

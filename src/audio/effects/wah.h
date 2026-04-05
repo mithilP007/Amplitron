@@ -3,7 +3,7 @@
 #include "audio/effect.h"
 #include "audio/dsp/envelope_follower.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class WahPedal : public Effect {
 public:
@@ -30,4 +30,4 @@ private:
     float q_smooth_ = 3.5f;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

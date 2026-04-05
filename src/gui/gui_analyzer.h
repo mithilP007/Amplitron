@@ -5,7 +5,7 @@
 #include <array>
 #include <memory>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * @brief Handles the real-time analyzer panel (VU meters + spectrum).
@@ -52,4 +52,4 @@ private:
     uint64_t analyzer_last_sequence_ = 0;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

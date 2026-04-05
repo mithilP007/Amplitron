@@ -1,7 +1,7 @@
 #include "audio/effects/chorus.h"
 #include "audio/effect_factory.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<Chorus> reg("Chorus");
 
@@ -111,4 +111,4 @@ void Chorus::reset() {
     lfo_phase_ = 0.0f;
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

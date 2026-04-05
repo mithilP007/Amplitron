@@ -4,7 +4,7 @@
 #include <cmath>
 #include <algorithm>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 GuiAnalyzer::GuiAnalyzer(AudioEngine& engine)
     : engine_(engine),
@@ -149,4 +149,4 @@ void GuiAnalyzer::render() {
     ImGui::EndChild();
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

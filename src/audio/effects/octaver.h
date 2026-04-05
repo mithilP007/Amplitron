@@ -2,7 +2,7 @@
 
 #include "audio/effect.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * Monophonic Octaver — generates sub-octave (Oct-1) and upper-octave (Oct+1)
@@ -44,4 +44,4 @@ private:
     float dry_smooth_ = 0.0f;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

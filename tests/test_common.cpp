@@ -1,7 +1,7 @@
 #include "test_framework.h"
 #include "common.h"
 
-using namespace GuitarAmp;
+using namespace Amplitron;
 
 // ============================================================
 // common.h utility function tests

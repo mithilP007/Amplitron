@@ -15,7 +15,7 @@
 #include <SDL_opengl.h>
 #endif
 
-namespace GuitarAmp {
+namespace Amplitron {
 namespace GLSetup {
 
 #ifdef __EMSCRIPTEN__
@@ -31,4 +31,4 @@ namespace GLSetup {
 #endif
 
 } // namespace GLSetup
-} // namespace GuitarAmp
+} // namespace Amplitron

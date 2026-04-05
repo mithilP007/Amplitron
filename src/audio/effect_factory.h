@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <string>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * Registry-based effect factory.
@@ -65,4 +65,4 @@ struct EffectRegistrar {
     }
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

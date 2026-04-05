@@ -2,7 +2,7 @@
 #include "audio/effect_factory.h"
 #include <cmath>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<Octaver> reg("Octaver");
 
@@ -113,4 +113,4 @@ void Octaver::reset() {
     dry_smooth_ = params_[P_DRY].value;
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

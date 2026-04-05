@@ -2,7 +2,7 @@
 #include "audio/effect_factory.h"
 #include <cmath>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<Phaser> reg("Phaser");
 
@@ -155,4 +155,4 @@ void Phaser::reset() {
     apf_yprev_r_.fill(0.0f);
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

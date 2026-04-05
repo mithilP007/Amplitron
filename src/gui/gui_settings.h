@@ -2,7 +2,7 @@
 
 #include "audio/audio_engine.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * @brief Renders the Audio Settings modal window.
@@ -19,4 +19,4 @@ private:
     AudioEngine& engine_;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

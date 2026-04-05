@@ -3,7 +3,7 @@
 #include "audio/effect.h"
 #include <atomic>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class TunerPedal : public Effect {
 public:
@@ -47,4 +47,4 @@ private:
     void recalc_update_interval();
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

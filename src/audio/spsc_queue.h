@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <type_traits>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 // Lock-free Single-Producer Single-Consumer ring buffer.
 // Producer: GUI thread pushes parameter changes.
@@ -83,4 +83,4 @@ struct AudioCommand {
     float value;          // The new value
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

@@ -1,7 +1,7 @@
 #include "audio/effects/cabinet_sim.h"
 #include "audio/effect_factory.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<CabinetSim> reg("Cabinet");
 
@@ -50,4 +50,4 @@ void CabinetSim::reset() {
     peak_.reset();
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

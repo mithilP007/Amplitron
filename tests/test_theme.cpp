@@ -2,7 +2,7 @@
 #include "gui/theme.h"
 #include <cstring>
 
-using namespace GuitarAmp;
+using namespace Amplitron;
 
 // ============================================================
 // Theme / Design System tests

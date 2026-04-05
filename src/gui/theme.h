@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <string>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 // ============================================================
 // AMPLITRON Design System
@@ -267,4 +267,4 @@ inline const EffectColorEntry* get_effect_color(const char* effect_name) {
     return &fallback;
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

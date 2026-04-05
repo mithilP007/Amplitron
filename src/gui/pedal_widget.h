@@ -4,7 +4,7 @@
 #include "audio/effect.h"
 #include <imgui.h>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class CommandHistory;
 class AudioEngine;
@@ -84,4 +84,4 @@ private:
     void commit_param_change(int param_index, float old_val, float new_val);
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

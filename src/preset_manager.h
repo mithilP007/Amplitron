@@ -5,7 +5,7 @@
 #include <fstream>
 #include <sstream>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 struct PresetData {
     std::string name;
@@ -78,4 +78,4 @@ private:
     static std::string unescape_json_string(const std::string& s);
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

@@ -3,7 +3,7 @@
 #include "audio/effect.h"
 #include "audio/dsp/biquad.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class Overdrive : public Effect {
 public:
@@ -24,4 +24,4 @@ private:
     float smoothed_level_ = 0.7f;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

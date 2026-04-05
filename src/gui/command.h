@@ -10,7 +10,7 @@
 #include <vector>
 #include <cstring>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * @brief Abstract base class for all undoable commands (Gang of Four Command Pattern).
@@ -420,4 +420,4 @@ private:
     std::vector<std::shared_ptr<Effect>> saved_;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

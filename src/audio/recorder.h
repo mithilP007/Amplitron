@@ -6,7 +6,7 @@
 #include <array>
 #include <thread>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class AudioEngine;
 
@@ -97,4 +97,4 @@ private:
     void writer_thread_func();
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

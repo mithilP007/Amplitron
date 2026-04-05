@@ -3,7 +3,7 @@
 #include "audio/effect.h"
 #include <vector>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * Pitch Shifter — shifts pitch by +/- 12 semitones using a dual-tap
@@ -44,4 +44,4 @@ private:
     float read_linear(float phase) const;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

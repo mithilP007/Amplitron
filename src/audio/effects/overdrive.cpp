@@ -1,7 +1,7 @@
 #include "audio/effects/overdrive.h"
 #include "audio/effect_factory.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<Overdrive> reg("Overdrive");
 
@@ -55,4 +55,4 @@ void Overdrive::reset() {
     dc_block_.reset();
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

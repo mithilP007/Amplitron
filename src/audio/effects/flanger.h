@@ -2,7 +2,7 @@
 
 #include "audio/effect.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * Flanger effect — short modulated delay line (0.1–15ms) mixed with dry signal.
@@ -29,4 +29,4 @@ private:
     int write_pos_r_ = 0;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

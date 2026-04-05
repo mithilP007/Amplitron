@@ -1,7 +1,7 @@
 #include "audio/effects/noise_gate.h"
 #include "audio/effect_factory.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<NoiseGate> reg("Noise Gate");
 
@@ -35,4 +35,4 @@ void NoiseGate::reset() {
     gain_ = 0.0f;
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cstdio>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 void GuiTuner::toggle(bool& show) {
     show = !show;
@@ -157,4 +157,4 @@ void GuiTuner::render(bool& show) {
     ImGui::End();
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

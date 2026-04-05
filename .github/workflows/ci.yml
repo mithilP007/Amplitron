@@ -63,7 +63,7 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: linux-build
-        path: build/guitar-amp
+        path: build/amplitron
         retention-days: 1
 
   test-macos:
@@ -111,13 +111,13 @@ jobs:
       run: |
         set -e
         mkdir -p staging
-        cp build/guitar-amp staging/
+        cp build/amplitron staging/
 
         echo "=== Original linked libraries ==="
-        otool -L staging/guitar-amp
+        otool -L staging/amplitron
 
         # Step 1: Find all non-system dylibs the binary links to (file-based, no pipe subshell)
-        otool -L staging/guitar-amp | tail -n +2 | awk '{print $1}' > /tmp/deps.txt
+        otool -L staging/amplitron | tail -n +2 | awk '{print $1}' > /tmp/deps.txt
         cat /tmp/deps.txt
 
         # Step 2: Copy each non-system dylib and fix the reference in the binary
@@ -130,7 +130,7 @@ jobs:
           cp -L "$lib" "staging/$libname"
           chmod 644 "staging/$libname"
           echo ">>> Fixing reference: $lib -> @executable_path/$libname"
-          install_name_tool -change "$lib" "@executable_path/$libname" staging/guitar-amp
+          install_name_tool -change "$lib" "@executable_path/$libname" staging/amplitron
         done < /tmp/deps.txt
 
         # Step 3: For each bundled dylib, fix ITS non-system dependencies too
@@ -158,7 +158,7 @@ jobs:
 
         echo ""
         echo "=== After bundling ==="
-        otool -L staging/guitar-amp
+        otool -L staging/amplitron
         echo "=== Dylib links ==="
         for f in staging/*.dylib; do
           [ -f "$f" ] || continue
@@ -356,7 +356,7 @@ jobs:
       shell: msys2 {0}
       run: |
         mkdir -p staging
-        cp build/guitar-amp.exe staging/
+        cp build/amplitron.exe staging/
         for dll in libgcc_s_seh-1.dll libstdc++-6.dll libwinpthread-1.dll SDL2.dll; do
           cp /mingw64/bin/$dll staging/ 2>/dev/null || true
         done

@@ -1,7 +1,7 @@
 #include "audio/effects/delay.h"
 #include "audio/effect_factory.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<Delay> reg("Delay");
 
@@ -67,4 +67,4 @@ void Delay::reset() {
     tone_lp_.reset();
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

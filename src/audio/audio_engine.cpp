@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <chrono>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 // =============================================================================
 // Construction / destruction
@@ -463,4 +463,4 @@ bool AudioEngine::copy_analyzer_snapshot(float* input_dest,
     return true;
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

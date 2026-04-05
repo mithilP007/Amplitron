@@ -3,7 +3,7 @@
 #include "audio/effect.h"
 #include "audio/dsp/biquad.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class Distortion : public Effect {
 public:
@@ -23,4 +23,4 @@ private:
     float level_smoothed_ = 0.5f;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

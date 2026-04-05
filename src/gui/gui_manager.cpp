@@ -16,14 +16,16 @@
 #include <cstdio>
 
 #pragma GCC diagnostic push
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 #define NANOSVG_IMPLEMENTATION
 #include "nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
 #include "nanosvgrast.h"
 #pragma GCC diagnostic pop
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 GuiManager::GuiManager(AudioEngine& engine)
     : engine_(engine),
@@ -612,4 +614,4 @@ void GuiManager::check_for_updates() {
 #endif
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

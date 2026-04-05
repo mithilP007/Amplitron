@@ -6,7 +6,7 @@
 
 #include "gui/file_dialog.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 std::string show_save_dialog(const std::string& /*default_name*/,
                              const std::string& /*filter_desc*/,
@@ -18,4 +18,4 @@ std::string show_folder_dialog(const std::string& /*title*/) {
     return "";
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

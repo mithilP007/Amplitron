@@ -1,7 +1,7 @@
 #include "audio/effects/equalizer.h"
 #include "audio/effect_factory.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<Equalizer> reg("Equalizer");
 
@@ -74,4 +74,4 @@ void Equalizer::reset() {
     high_shelf_.reset();
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

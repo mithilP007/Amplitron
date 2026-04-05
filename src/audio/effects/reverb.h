@@ -2,7 +2,7 @@
 
 #include "audio/effect.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class Reverb : public Effect {
 public:
@@ -44,4 +44,4 @@ private:
     void init_filters();
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

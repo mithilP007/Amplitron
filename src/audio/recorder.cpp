@@ -16,7 +16,7 @@
 #define MKDIR(path) mkdir(path, 0755)
 #endif
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static void mkdirs(const std::string& path) {
     std::string current;
@@ -413,4 +413,4 @@ void Recorder::write_metadata(const std::string& wav_path, AudioEngine& engine) 
     std::cout << "Metadata written: " << meta_path << std::endl;
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

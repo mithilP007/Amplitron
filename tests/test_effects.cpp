@@ -18,7 +18,7 @@
 #include <cstring>
 #include <cmath>
 
-using namespace GuitarAmp;
+using namespace Amplitron;
 
 // Helper: fill buffer with a sine wave
 static void fill_sine(float* buf, int n, float freq, int sr) {
@@ -336,7 +336,7 @@ TEST(amp_simulator_processes_without_nan) {
 }
 
 TEST(amp_simulator_models_sound_different) {
-    const auto& models = GuitarAmp::get_amp_models();
+    const auto& models = Amplitron::get_amp_models();
     ASSERT_GE((int)models.size(), 3);
 
     std::vector<float> model_rms;
@@ -385,7 +385,7 @@ TEST(amp_simulator_output_clamped) {
 }
 
 TEST(amp_simulator_get_models_returns_at_least_three) {
-    const auto& models = GuitarAmp::get_amp_models();
+    const auto& models = Amplitron::get_amp_models();
     ASSERT_GE((int)models.size(), 3);
     for (const auto& m : models) {
         ASSERT_TRUE(m.name != nullptr);

@@ -1,7 +1,7 @@
 #include "audio/effects/distortion.h"
 #include "audio/effect_factory.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<Distortion> reg("Distortion");
 
@@ -63,4 +63,4 @@ void Distortion::reset() {
     tone_lp_.reset();
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

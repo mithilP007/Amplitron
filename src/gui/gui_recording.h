@@ -4,7 +4,7 @@
 #include "audio/recorder.h"
 #include <string>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * @brief Handles recording controls and waveform display UI.
@@ -39,4 +39,4 @@ private:
     std::string status_msg_;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

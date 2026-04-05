@@ -2,7 +2,7 @@
 #include "audio/effect_factory.h"
 #include <cmath>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<PitchShifter> reg("Pitch Shifter");
 
@@ -122,4 +122,4 @@ void PitchShifter::reset() {
     mix_smooth_ = params_[P_MIX].value;
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <algorithm>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 std::string GuiPresets::preset_name_from_path(const std::string& filepath) const {
     size_t slash = filepath.find_last_of("/\\");
@@ -329,4 +329,4 @@ void GuiPresets::render_load_popup(bool& show) {
     ImGui::End();
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

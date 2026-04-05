@@ -7,7 +7,7 @@
 #include "audio/effects/distortion.h"
 #include "audio/effects/chorus.h"
 
-using namespace GuitarAmp;
+using namespace Amplitron;
 using namespace TestFramework;
 
 // Helper: create a minimal AudioEngine (not started, no PortAudio init)

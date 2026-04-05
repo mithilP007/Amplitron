@@ -3,7 +3,7 @@
 #include "audio/effect.h"
 #include "audio/dsp/envelope_follower.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class NoiseGate : public Effect {
 public:
@@ -19,4 +19,4 @@ private:
     float gain_ = 0.0f;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 namespace {
 
@@ -194,4 +194,4 @@ void SpectrumAnalyzer::draw(ImDrawList* draw_list,
     }
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

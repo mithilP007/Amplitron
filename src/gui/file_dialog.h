@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 // Cross-platform native save file dialog
 // Returns empty string if user cancelled
@@ -14,4 +14,4 @@ std::string show_save_dialog(const std::string& default_name = "recording.wav",
 // Returns empty string if user cancelled
 std::string show_folder_dialog(const std::string& title = "Select Folder");
 
-} // namespace GuitarAmp
+} // namespace Amplitron

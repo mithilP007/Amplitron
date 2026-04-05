@@ -17,7 +17,7 @@
 #include <cctype>
 #include <algorithm>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 // -----------------------------------------------------------------------------
 // Backend state
@@ -534,4 +534,4 @@ bool AudioEngine::set_output_device(int device_index) {
     return true;
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

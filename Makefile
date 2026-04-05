@@ -23,7 +23,7 @@ build: $(BUILD_DIR)/Makefile
 	@echo "=== Building Guitar Amp Simulator ($(BUILD_TYPE)) ==="
 	@cmake --build $(BUILD_DIR) --config $(BUILD_TYPE) -j$(NPROC)
 	@echo "=== Build complete ==="
-	@echo "Binary: $(BUILD_DIR)/guitar-amp"
+	@echo "Binary: $(BUILD_DIR)/amplitron"
 
 clean:
 	@echo "=== Cleaning build directory ==="
@@ -37,11 +37,11 @@ install: build
 
 uninstall:
 	@echo "=== Uninstalling ==="
-	@rm -f /usr/local/bin/guitar-amp
+	@rm -f /usr/local/bin/amplitron
 
 run: build
 	@echo "=== Running Guitar Amp Simulator ==="
-	@./$(BUILD_DIR)/guitar-amp
+	@./$(BUILD_DIR)/amplitron
 
 debug:
 	@$(MAKE) BUILD_TYPE=Debug build

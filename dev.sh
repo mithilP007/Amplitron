@@ -1,2 +1,2 @@
 cmake -S . -B build
-cmake --build build -j && ./build/guitar-amp
+cmake --build build -j && ./build/amplitron

@@ -6,7 +6,7 @@
 #include "audio/spsc_queue.h"
 #include <chrono>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 struct AudioDeviceInfo {
     int index;
@@ -331,4 +331,4 @@ private:
     std::atomic<uint64_t> analyzer_sequence_{0};
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

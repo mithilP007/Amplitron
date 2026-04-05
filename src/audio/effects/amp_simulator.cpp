@@ -1,7 +1,7 @@
 #include "audio/effects/amp_simulator.h"
 #include "audio/effect_factory.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<AmpSimulator> reg("Amp Sim");
 
@@ -213,4 +213,4 @@ void AmpSimulator::reset() {
     dc_block_.reset();
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

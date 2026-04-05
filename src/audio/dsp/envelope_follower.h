@@ -3,7 +3,7 @@
 #include "common.h"
 #include <cmath>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * Attack/release envelope follower.
@@ -47,4 +47,4 @@ struct EnvelopeFollower {
     void reset() { envelope = 0.0f; }
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

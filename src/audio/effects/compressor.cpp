@@ -1,7 +1,7 @@
 #include "audio/effects/compressor.h"
 #include "audio/effect_factory.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<Compressor> reg("Compressor");
 
@@ -49,4 +49,4 @@ void Compressor::reset() {
     env_.reset();
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

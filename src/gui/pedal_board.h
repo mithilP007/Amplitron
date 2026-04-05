@@ -5,7 +5,7 @@
 #include "gui/command_history.h"
 #include <set>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class PedalWidget;
 
@@ -62,4 +62,4 @@ private:
     std::set<int> visible_indices_; // Indices of pedals that should be visible
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

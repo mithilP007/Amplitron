@@ -23,7 +23,7 @@
 static std::atomic<bool> g_running{true};
 
 #ifdef __EMSCRIPTEN__
-static GuitarAmp::GuiManager* g_gui = nullptr;
+static Amplitron::GuiManager* g_gui = nullptr;
 
 static void em_main_loop() {
     if (!g_gui || !g_gui->run_frame()) {
@@ -45,7 +45,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
     std::cout << "Starting up..." << std::endl;
 
     // Initialize audio engine
-    GuitarAmp::AudioEngine engine;
+    Amplitron::AudioEngine engine;
     if (!engine.initialize()) {
         std::cerr << "Failed to initialize audio engine!" << std::endl;
         return 1;
@@ -55,42 +55,42 @@ int main(int /*argc*/, char* /*argv*/[]) {
     // Only EQ and light reverb are enabled by default — clean acoustic tone.
     // All other effects start bypassed; click the footswitch to enable them.
 
-    auto noise_gate = std::make_shared<GuitarAmp::NoiseGate>();
+    auto noise_gate = std::make_shared<Amplitron::NoiseGate>();
     noise_gate->set_enabled(false);
     engine.add_effect(noise_gate);
 
-    auto compressor = std::make_shared<GuitarAmp::Compressor>();
+    auto compressor = std::make_shared<Amplitron::Compressor>();
     compressor->set_enabled(false);
     engine.add_effect(compressor);
 
-    auto overdrive = std::make_shared<GuitarAmp::Overdrive>();
+    auto overdrive = std::make_shared<Amplitron::Overdrive>();
     overdrive->set_enabled(false);
     engine.add_effect(overdrive);
 
-    auto distortion = std::make_shared<GuitarAmp::Distortion>();
+    auto distortion = std::make_shared<Amplitron::Distortion>();
     distortion->set_enabled(false);
     engine.add_effect(distortion);
 
-    auto eq = std::make_shared<GuitarAmp::Equalizer>();
+    auto eq = std::make_shared<Amplitron::Equalizer>();
     eq->set_enabled(true);  // ON: gentle EQ for tone shaping
     engine.add_effect(eq);
 
-    auto chorus = std::make_shared<GuitarAmp::Chorus>();
+    auto chorus = std::make_shared<Amplitron::Chorus>();
     chorus->set_enabled(false);
     engine.add_effect(chorus);
 
-    auto delay = std::make_shared<GuitarAmp::Delay>();
+    auto delay = std::make_shared<Amplitron::Delay>();
     delay->set_enabled(false);
     engine.add_effect(delay);
 
-    auto reverb = std::make_shared<GuitarAmp::Reverb>();
+    auto reverb = std::make_shared<Amplitron::Reverb>();
     reverb->set_enabled(true);  // ON: light room reverb
     reverb->params()[0].value = 0.3f;  // Decay: 30% (short, natural room)
     reverb->params()[1].value = 0.4f;  // Damping: mellow
     reverb->set_mix(0.25f);  // 25% wet — subtle, doesn't wash out the signal
     engine.add_effect(reverb);
 
-    auto cabinet = std::make_shared<GuitarAmp::CabinetSim>();
+    auto cabinet = std::make_shared<Amplitron::CabinetSim>();
     cabinet->set_enabled(false);  // OFF: not needed for acoustic guitar
     engine.add_effect(cabinet);
 
@@ -108,7 +108,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
     }
 
     // Initialize GUI
-    GuitarAmp::GuiManager gui(engine);
+    Amplitron::GuiManager gui(engine);
     if (!gui.initialize(1280, 720)) {
         std::cerr << "Failed to initialize GUI!" << std::endl;
         engine.shutdown();

@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * Fixed-size circular buffer for delay lines.
@@ -66,4 +66,4 @@ private:
     int size_ = 0;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

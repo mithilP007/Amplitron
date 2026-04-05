@@ -3,7 +3,7 @@
 #include "audio/effect.h"
 #include <array>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * Phaser effect — cascaded 1st-order all-pass filters with LFO modulation.
@@ -34,4 +34,4 @@ private:
     std::array<float, MAX_STAGES> apf_yprev_r_{};
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

@@ -11,7 +11,7 @@
 #include <functional>
 #include <mutex>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 constexpr int DEFAULT_SAMPLE_RATE = 48000;
 constexpr int DEFAULT_BUFFER_SIZE = 64;  // ~1.3ms latency at 48kHz
@@ -63,4 +63,4 @@ struct SmoothParam {
     void snap() { current = target; }
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

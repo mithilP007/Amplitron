@@ -3,7 +3,7 @@
 #include "audio/effect.h"
 #include "audio/dsp/biquad.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class Equalizer : public Effect {
 public:
@@ -36,4 +36,4 @@ private:
     void recompute_coefficients_if_dirty();
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

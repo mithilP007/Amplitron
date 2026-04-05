@@ -2,7 +2,7 @@
 
 #include "audio/effect.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class Chorus : public Effect {
 public:
@@ -22,4 +22,4 @@ private:
     int max_delay_samples_ = 0;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

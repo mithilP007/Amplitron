@@ -5,7 +5,7 @@
 #include <array>
 #include <complex>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class SpectrumAnalyzer {
 public:
@@ -46,4 +46,4 @@ private:
     std::array<float, DISPLAY_BARS> output_peak_db_{};
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

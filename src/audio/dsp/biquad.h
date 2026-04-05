@@ -2,7 +2,7 @@
 
 #include "common.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 /**
  * Transposed Direct Form II biquad filter.
@@ -90,4 +90,4 @@ struct OnePole {
     void reset() { state = 0.0f; }
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

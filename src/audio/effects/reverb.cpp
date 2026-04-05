@@ -1,7 +1,7 @@
 #include "audio/effects/reverb.h"
 #include "audio/effect_factory.h"
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<Reverb> reg("Reverb");
 
@@ -186,4 +186,4 @@ void Reverb::reset() {
     }
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

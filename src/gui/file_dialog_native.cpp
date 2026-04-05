@@ -23,7 +23,7 @@
 #include <sys/wait.h>
 #endif
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 #ifdef _WIN32
 std::string show_save_dialog(const std::string& default_name,
@@ -269,4 +269,4 @@ std::string show_folder_dialog(const std::string& title) {
 }
 #endif
 
-} // namespace GuitarAmp
+} // namespace Amplitron

@@ -15,7 +15,7 @@
 struct SDL_Window;
 typedef void* SDL_GLContext;
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 class PedalBoard;
 
@@ -80,4 +80,4 @@ private:
     std::string new_release_url_;
 };
 
-} // namespace GuitarAmp
+} // namespace Amplitron

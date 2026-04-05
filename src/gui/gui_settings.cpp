@@ -3,7 +3,7 @@
 #include <imgui.h>
 #include <cstdio>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 void GuiSettings::render(bool& show) {
     ImGui::SetNextWindowSize(ImVec2(600, 550), ImGuiCond_FirstUseEver);
@@ -151,4 +151,4 @@ void GuiSettings::render(bool& show) {
     ImGui::End();
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron

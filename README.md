@@ -217,10 +217,10 @@ make build
 ### Running
 ```bash
 # Linux / macOS
-./build/guitar-amp
+./build/amplitron
 
 # Windows
-.\build\Release\guitar-amp.exe
+.\build\Release\amplitron.exe
 ```
 
 ### Controls

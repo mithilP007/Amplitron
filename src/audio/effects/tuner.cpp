@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cstring>
 
-namespace GuitarAmp {
+namespace Amplitron {
 
 static EffectRegistrar<TunerPedal> reg("Tuner");
 
@@ -224,4 +224,4 @@ void TunerPedal::freq_to_note(float freq, float a4_ref) {
     detected_cents.store(cents, std::memory_order_relaxed);
 }
 
-} // namespace GuitarAmp
+} // namespace Amplitron
