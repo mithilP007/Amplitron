@@ -279,6 +279,8 @@ else() # NOT EMSCRIPTEN
 
     target_link_libraries(Amplitron-tests PRIVATE
         ${PORTAUDIO_LIBRARIES}
+        ${SDL2_LIBRARIES}
+        ${OPENGL_LIBRARIES}
     )
 
     if(WIN32)
