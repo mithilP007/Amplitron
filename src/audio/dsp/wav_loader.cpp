@@ -56,9 +56,13 @@ WavData load_wav_file(const std::string& filepath,
         return result;
     }
 
-    // Read all frames as interleaved float
-    std::vector<float> interleaved(static_cast<size_t>(total_frames * wav.channels));
-    drwav_uint64 frames_read = drwav_read_pcm_frames_f32(&wav, total_frames,
+    // Bound frame count to max_length_samples before allocation
+    drwav_uint64 frames_to_read = std::min(total_frames,
+        static_cast<drwav_uint64>(max_length_samples));
+
+    // Read bounded frames as interleaved float
+    std::vector<float> interleaved(static_cast<size_t>(frames_to_read * wav.channels));
+    drwav_uint64 frames_read = drwav_read_pcm_frames_f32(&wav, frames_to_read,
                                                           interleaved.data());
     drwav_uninit(&wav);
 

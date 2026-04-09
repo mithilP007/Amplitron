@@ -128,8 +128,11 @@ void IRCabinet::process(float* buffer, int num_samples) {
 
     float level = params_[0].value;
 
-    // Save dry signal for mix blending
-    std::vector<float> dry(buffer, buffer + num_samples);
+    // Save dry signal for mix blending (resize only when block size changes)
+    if (dry_buffer_.size() != static_cast<size_t>(num_samples)) {
+        dry_buffer_.resize(num_samples);
+    }
+    std::copy(buffer, buffer + num_samples, dry_buffer_.begin());
 
     // Apply convolution
     conv_engine_.process(buffer, num_samples);
@@ -146,7 +149,7 @@ void IRCabinet::process(float* buffer, int num_samples) {
         float wet = mix_;
         float dry_amt = 1.0f - wet;
         for (int i = 0; i < num_samples; ++i) {
-            buffer[i] = dry[static_cast<size_t>(i)] * dry_amt + buffer[i] * wet;
+            buffer[i] = dry_buffer_[static_cast<size_t>(i)] * dry_amt + buffer[i] * wet;
         }
     }
 }

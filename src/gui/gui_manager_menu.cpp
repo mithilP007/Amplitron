@@ -7,8 +7,71 @@
 #include <SDL2/SDL.h>
 #include <cstdio>
 #include <string>
+#if defined(_WIN32)
+#include <windows.h>
+#include <shellapi.h>
+#elif defined(__APPLE__) && !TARGET_OS_IOS
+#include <unistd.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#elif defined(__linux__)
+#include <unistd.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#endif
 
 namespace Amplitron {
+
+// Safe URL opener that avoids shell injection
+static void open_url_safe(const std::string& url) {
+#if defined(_WIN32)
+    ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+#elif defined(__APPLE__) && !TARGET_OS_IOS
+    // Use fork+exec to invoke open without shell
+    int pipefd[2];
+    if (pipe(pipefd) != 0) return;
+    pid_t pid = fork();
+    if (pid < 0) {
+        close(pipefd[0]);
+        close(pipefd[1]);
+        return;
+    }
+    if (pid == 0) {
+        close(pipefd[0]);
+        close(pipefd[1]);
+        int devnull = open("/dev/null", O_WRONLY);
+        if (devnull >= 0) { dup2(devnull, STDERR_FILENO); close(devnull); }
+        execl("/usr/bin/open", "open", url.c_str(), nullptr);
+        _exit(1);
+    }
+    close(pipefd[0]);
+    close(pipefd[1]);
+    int status = 0;
+    waitpid(pid, &status, 0);
+#elif defined(__linux__)
+    // Use fork+exec to invoke xdg-open without shell
+    int pipefd[2];
+    if (pipe(pipefd) != 0) return;
+    pid_t pid = fork();
+    if (pid < 0) {
+        close(pipefd[0]);
+        close(pipefd[1]);
+        return;
+    }
+    if (pid == 0) {
+        close(pipefd[0]);
+        close(pipefd[1]);
+        int devnull = open("/dev/null", O_WRONLY);
+        if (devnull >= 0) { dup2(devnull, STDERR_FILENO); close(devnull); }
+        execl("/usr/bin/xdg-open", "xdg-open", url.c_str(), nullptr);
+        _exit(1);
+    }
+    close(pipefd[0]);
+    close(pipefd[1]);
+    int status = 0;
+    waitpid(pid, &status, 0);
+#endif
+}
 
 void GuiManager::render_menu_bar() {
     if (ImGui::BeginMainMenuBar()) {
@@ -105,36 +168,37 @@ void GuiManager::render_menu_bar() {
             ImGui::EndMenu();
         }
 
-        // Status bar (right side)
+        // Status bar (right-aligned items computed dynamically)
         float bar_w = ImGui::GetWindowWidth();
+        float padding = 8.0f;
 
-        // MIDI status indicator
-        ImGui::SameLine(bar_w - 450);
-        if (midi_manager_.is_port_open()) {
-            ImGui::TextColored(Theme::Live(), "MIDI");
-        } else {
-            ImGui::TextColored(ImVec4(0.4f, 0.4f, 0.4f, 1.0f), "MIDI");
-        }
+        // Build a vector of status items from right to left (for right-alignment)
+        struct StatusItem {
+            std::string label;
+            bool is_clickable = false;
+        };
+        std::vector<StatusItem> items;
 
-        // Recording indicator
-        ImGui::SameLine(bar_w - 400);
+        // Sample rate (rightmost)
+        char sr_buf[16];
+        snprintf(sr_buf, sizeof(sr_buf), "%dHz", engine_.get_sample_rate());
+        items.push_back({sr_buf, false});
+
+        // Audio status (LIVE/STOPPED)
+        items.push_back({engine_.is_running() ? "LIVE" : "STOPPED", false});
+
+        // Recording indicator if recording
         if (engine_.recorder().is_recording()) {
-            float t = static_cast<float>(ImGui::GetTime());
-            ImGui::TextColored(Theme::RecBlink(t), "REC");
-            ImGui::SameLine();
-            ImGui::Text("%.1fs", engine_.recorder().get_duration());
+            char rec_dur[32];
+            snprintf(rec_dur, sizeof(rec_dur), "%.1fs", engine_.recorder().get_duration());
+            items.push_back({rec_dur, false});
+            items.push_back({"REC", false});
         }
 
-        // Audio status
-        ImGui::SameLine(bar_w - 200);
-        if (engine_.is_running()) {
-            ImGui::TextColored(Theme::Live(), "LIVE");
-        } else {
-            ImGui::TextColored(Theme::Stopped(), "STOPPED");
-        }
-        ImGui::SameLine();
-        ImGui::Text("%dHz", engine_.get_sample_rate());
+        // MIDI status
+        items.push_back({midi_manager_.is_port_open() ? "MIDI" : "MIDI", false});
 
+        // Check for update (leftmost of right-aligned group)
         bool show_update = false;
         std::string update_version;
         std::string update_url;
@@ -148,23 +212,49 @@ void GuiManager::render_menu_bar() {
         }
 
         if (show_update) {
-            ImGui::SameLine(bar_w - 600);
-            ImGui::TextColored(Theme::GoldHot(), "New Release Available: %s", update_version.c_str());
-            if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Click to open release in browser");
-                ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-            }
-            if (ImGui::IsItemClicked()) {
-#if defined(_WIN32)
-                std::string cmd = "start " + update_url;
-                std::system(cmd.c_str());
-#elif defined(__APPLE__) && !TARGET_OS_IOS
-                std::string cmd = "open " + update_url;
-                std::system(cmd.c_str());
-#elif defined(__linux__)
-                std::string cmd = "xdg-open " + update_url;
-                std::system(cmd.c_str());
-#endif
+            std::string release_text = "New Release Available: " + update_version;
+            items.push_back({release_text, true});  // Clickable
+        }
+
+        // Measure widths and compute right-aligned positions
+        float x_pos = bar_w - padding;
+        for (auto it = items.rbegin(); it != items.rend(); ++it) {
+            ImVec2 text_size = ImGui::CalcTextSize(it->label.c_str());
+            x_pos -= text_size.x + padding;
+        }
+
+        // Render items from left to right
+        x_pos = bar_w - padding;
+        for (auto it = items.rbegin(); it != items.rend(); ++it) {
+            ImVec2 text_size = ImGui::CalcTextSize(it->label.c_str());
+            x_pos -= text_size.x + padding;
+
+            ImGui::SameLine(x_pos);
+
+            if (it->label.find("MIDI") == 0) {
+                if (midi_manager_.is_port_open()) {
+                    ImGui::TextColored(Theme::Live(), "%s", it->label.c_str());
+                } else {
+                    ImGui::TextColored(ImVec4(0.4f, 0.4f, 0.4f, 1.0f), "%s", it->label.c_str());
+                }
+            } else if (it->label == "LIVE") {
+                ImGui::TextColored(Theme::Live(), "%s", it->label.c_str());
+            } else if (it->label == "STOPPED") {
+                ImGui::TextColored(Theme::Stopped(), "%s", it->label.c_str());
+            } else if (it->label == "REC") {
+                float t = static_cast<float>(ImGui::GetTime());
+                ImGui::TextColored(Theme::RecBlink(t), "%s", it->label.c_str());
+            } else if (it->label.find("New Release") == 0) {
+                ImGui::TextColored(Theme::GoldHot(), "%s", it->label.c_str());
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("Click to open release in browser");
+                    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+                }
+                if (ImGui::IsItemClicked()) {
+                    open_url_safe(update_url);
+                }
+            } else {
+                ImGui::Text("%s", it->label.c_str());
             }
         }
 

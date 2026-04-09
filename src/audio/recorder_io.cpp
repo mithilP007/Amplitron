@@ -32,7 +32,7 @@ void Recorder::write_samples(const float* buffer, int num_samples) {
         if (bin_sample_count_ >= samples_per_bin_) {
             int pos = waveform_write_pos_.load() % WAVEFORM_SIZE;
             waveform_buf_[pos].store(bin_peak_);
-            waveform_write_pos_.store(pos + 1);
+            waveform_write_pos_.fetch_add(1);
             current_peak_.store(bin_peak_);
             bin_peak_ = 0.0f;
             bin_sample_count_ = 0;

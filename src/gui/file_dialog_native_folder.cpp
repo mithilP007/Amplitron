@@ -10,10 +10,12 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <shlobj.h>
+#else
+// Required for popen, pclose, fgets, FILE on non-Windows builds
+#include <cstdio>
 #endif
 
 #ifdef __APPLE__
-#include <cstdio>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <fcntl.h>

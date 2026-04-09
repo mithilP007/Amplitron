@@ -74,10 +74,15 @@ std::vector<std::string> MidiManager::get_available_ports() const {
     if (!midi_in_) return result;
 
     auto* rt = static_cast<RtMidiIn*>(midi_in_);
-    unsigned int count = rt->getPortCount();
-    result.reserve(count);
-    for (unsigned int i = 0; i < count; ++i) {
-        result.push_back(rt->getPortName(i));
+    try {
+        unsigned int count = rt->getPortCount();
+        result.reserve(count);
+        for (unsigned int i = 0; i < count; ++i) {
+            result.push_back(rt->getPortName(i));
+        }
+    } catch (const RtMidiError& e) {
+        std::cerr << "[MidiManager] Failed to enumerate MIDI ports: "
+                  << e.getMessage() << "\n";
     }
     return result;
 }
@@ -88,10 +93,11 @@ bool MidiManager::open_port(int port_index) {
     close_port();
 
     auto* rt = static_cast<RtMidiIn*>(midi_in_);
-    unsigned int count = rt->getPortCount();
-    if (port_index < 0 || static_cast<unsigned int>(port_index) >= count) return false;
 
     try {
+        unsigned int count = rt->getPortCount();
+        if (port_index < 0 || static_cast<unsigned int>(port_index) >= count) return false;
+
         rt->setCallback(&MidiManager::midi_callback, this);
         rt->openPort(static_cast<unsigned int>(port_index), "Amplitron In");
         current_port_ = port_index;
@@ -100,6 +106,10 @@ bool MidiManager::open_port(int port_index) {
     } catch (const RtMidiError& e) {
         std::cerr << "[MidiManager] Failed to open port " << port_index
                   << ": " << e.getMessage() << "\n";
+        // Ensure port is closed on error
+        try {
+            rt->closePort();
+        } catch (...) {}
         current_port_ = -1;
         current_port_name_.clear();
         return false;

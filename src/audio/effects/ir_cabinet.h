@@ -42,6 +42,9 @@ private:
 
     ConvolutionEngine conv_engine_;
 
+    // Dry signal buffer for process() to avoid per-call allocations in audio callback
+    std::vector<float> dry_buffer_;
+
     // Raw IR samples for rebuilding kernel on sample rate / block size changes
     std::vector<float> raw_ir_samples_;
 

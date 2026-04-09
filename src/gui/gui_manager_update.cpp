@@ -10,9 +10,9 @@ void GuiManager::check_for_updates() {
 #ifndef AMPLITRON_NO_DESKTOP_SHELL
     FILE* pipe = nullptr;
 #ifdef _WIN32
-    pipe = _popen("curl -s https://api.github.com/repos/sudip-mondal-2002/Amplitron/releases", "r");
+    pipe = _popen("curl -s --fail --connect-timeout 5 --max-time 10 https://api.github.com/repos/sudip-mondal-2002/Amplitron/releases", "r");
 #else
-    pipe = popen("curl -s https://api.github.com/repos/sudip-mondal-2002/Amplitron/releases", "r");
+    pipe = popen("curl -s --fail --connect-timeout 5 --max-time 10 https://api.github.com/repos/sudip-mondal-2002/Amplitron/releases", "r");
 #endif
 
     if (!pipe) return;
@@ -24,10 +24,13 @@ void GuiManager::check_for_updates() {
             result += buffer;
     }
 #ifdef _WIN32
-    _pclose(pipe);
+    int ret = _pclose(pipe);
 #else
-    pclose(pipe);
+    int ret = pclose(pipe);
 #endif
+
+    // If curl failed, discard the result and return
+    if (ret != 0) return;
 
     std::string search_str = "\"tag_name\": \"";
     size_t pos = result.find(search_str);

@@ -62,7 +62,7 @@ std::string show_open_dialog(const std::string& title,
 std::string show_open_dialog(const std::string& title,
                              const std::string& /*filter_desc*/,
                              const std::string& filter_ext) {
-    // Sanitize title for AppleScript
+    // Sanitize title and filter_ext for AppleScript
     std::string safe_title;
     for (char c : title) {
         if (c == '\\') { safe_title += "\\\\"; }
@@ -70,7 +70,14 @@ std::string show_open_dialog(const std::string& title,
         else { safe_title += c; }
     }
 
-    std::string script = "POSIX path of (choose file of type {\"" + filter_ext +
+    std::string safe_ext;
+    for (char c : filter_ext) {
+        if (c == '\\') { safe_ext += "\\\\"; }
+        else if (c == '"') { safe_ext += "\\\""; }
+        else { safe_ext += c; }
+    }
+
+    std::string script = "POSIX path of (choose file of type {\"" + safe_ext +
                          "\"} with prompt \"" + safe_title + "\")";
 
     // Use fork+exec to invoke osascript directly
@@ -115,15 +122,23 @@ std::string show_open_dialog(const std::string& title,
 std::string show_open_dialog(const std::string& title,
                              const std::string& filter_desc,
                              const std::string& filter_ext) {
-    std::string safe_title;
-    for (char c : title) {
-        if (c == '\'') { safe_title += "'\\''"; }
-        else { safe_title += c; }
-    }
+    // Escape single quotes for shell
+    auto escape_single_quotes = [](const std::string& s) {
+        std::string result;
+        for (char c : s) {
+            if (c == '\'') { result += "'\\''"; }
+            else { result += c; }
+        }
+        return result;
+    };
+
+    std::string safe_title = escape_single_quotes(title);
+    std::string safe_desc = escape_single_quotes(filter_desc);
+    std::string safe_ext = escape_single_quotes(filter_ext);
 
     std::string cmd = "zenity --file-selection "
                       "--title='" + safe_title + "' "
-                      "--file-filter='" + filter_desc + " (*." + filter_ext + ")|*." + filter_ext + "' "
+                      "--file-filter='" + safe_desc + " (*." + safe_ext + ")|*." + safe_ext + "' "
                       "--file-filter='All Files (*)|*' 2>/dev/null";
 
     FILE* pipe = popen(cmd.c_str(), "r");
@@ -137,7 +152,7 @@ std::string show_open_dialog(const std::string& title,
     int wait_status = pclose(pipe);
 
     if (WIFEXITED(wait_status) && WEXITSTATUS(wait_status) != 0) {
-        cmd = "kdialog --getopenfilename ~/ '*." + filter_ext + "|" + filter_desc + "' "
+        cmd = "kdialog --getopenfilename ~/ '*." + safe_ext + "|" + safe_desc + "' "
               "--title '" + safe_title + "' 2>/dev/null";
         pipe = popen(cmd.c_str(), "r");
         if (!pipe) return "";

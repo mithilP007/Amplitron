@@ -6,7 +6,8 @@ plugins {
 def appVersion = project.findProperty('amplitronVersion') ?: '0.0.0'
 def (major, minor, patch) = appVersion.tokenize('.')
 // versionCode must be >= 1; dev builds default to 1
-def versionInt = Math.max(1, (major.toInteger() * 10000) + (minor.toInteger() * 100) + patch.toInteger())
+// Use sufficient digit space to avoid collisions: major (5 digits) + minor (4 digits) + patch (3 digits)
+def versionInt = Math.max(1, (major.toInteger() * 1000000) + (minor.toInteger() * 1000) + patch.toInteger())
 
 android {
     namespace 'com.amplitron.app'
@@ -43,8 +44,13 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            // Use the built-in debug keystore so the APK is directly installable
-            // via ADB sideload without needing a paid signing certificate.
+            // Leave unsigned for CI-injected signing; actual signing happens in release pipeline
+        }
+        sideload {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // Use the built-in debug keystore for local/CI sideloads
+            // APK is directly installable via ADB sideload without needing a paid signing certificate.
             signingConfig signingConfigs.debug
         }
         debug {

@@ -181,13 +181,6 @@ void ConvolutionEngine::process_direct(float* buffer, int num_samples) {
         direct_overlap_[static_cast<size_t>(i)] =
             output[static_cast<size_t>(num_samples + i)];
     }
-    // Add any remaining old overlap that extended beyond num_samples
-    if (tail_len > num_samples) {
-        for (int i = num_samples; i < tail_len; ++i) {
-            direct_overlap_[static_cast<size_t>(i)] +=
-                direct_overlap_[static_cast<size_t>(i)];
-        }
-    }
 }
 
 void ConvolutionEngine::process(float* buffer, int num_samples) {
