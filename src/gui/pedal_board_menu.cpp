@@ -98,6 +98,63 @@ void PedalBoard::render_add_pedal_menu() {
     }
 }
 
+// ============================================================
+// MIDI MENU — ADDED FOR MIDI INPUT SUPPORT
+// ============================================================
+void PedalBoard::render_midi_menu() {
+    auto* midi = engine_.midi_input();
+    if (!midi) return; // MIDI not available in this build
+    
+    if (ImGui::BeginMenu("MIDI")) {
+        // Device status
+        if (midi->is_open()) {
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "● Connected");
+        } else {
+            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "● Disconnected");
+        }
+        
+        ImGui::Separator();
+        
+        // Refresh device list
+        if (ImGui::MenuItem("Refresh Devices")) {
+            // Device list auto-refreshes on next get_available_ports() call
+        }
+        
+        // Learn mode status
+        if (midi->is_learning()) {
+            ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "⚡ Learn Mode Active");
+            if (ImGui::MenuItem("Stop Learn Mode", "Esc")) {
+                midi->stop_learn();
+            }
+        } else {
+            ImGui::TextDisabled("Right-click any knob to start MIDI learn");
+        }
+        
+        ImGui::Separator();
+        
+        // Quick actions
+        if (ImGui::MenuItem("Clear All Mappings")) {
+            midi->clear_mappings();
+        }
+        
+        if (ImGui::MenuItem("Save Mappings...")) {
+            midi->save_mappings("midi_mappings.json");
+        }
+        
+        if (ImGui::MenuItem("Load Mappings...")) {
+            midi->load_mappings("midi_mappings.json");
+        }
+        
+        ImGui::Separator();
+        
+        // Show active mappings count
+        auto mappings = midi->get_mappings();
+        ImGui::TextDisabled("Active mappings: %zu", mappings.size());
+        
+        ImGui::EndMenu();
+    }
+}
+
 void PedalBoard::render_amp_selector() {
     const auto& models = get_amp_models();
     int amp_idx = find_amp_index();
