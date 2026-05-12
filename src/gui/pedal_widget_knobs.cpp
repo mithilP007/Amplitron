@@ -139,10 +139,14 @@ void PedalWidget::render_knobs(ImDrawList* dl, ImVec2 p0, float pedal_width, boo
             }
         }
 
+        // ============================================================
+        // RIGHT-CLICK POPUP — ENHANCED WITH MIDI LEARN
+        // ============================================================
         if (is_hovered && ImGui::IsMouseClicked(1)) {
             ImGui::OpenPopup(label);
         }
         if (ImGui::BeginPopup(label)) {
+            // --- Parameter name and value editor ---
             ImGui::Text("%s", params[pi].name.c_str());
             ImGui::SetNextItemWidth(120);
             float slider_val = params[pi].value;
@@ -173,11 +177,78 @@ void PedalWidget::render_knobs(ImDrawList* dl, ImVec2 p0, float pedal_width, boo
                 }
                 ImGui::CloseCurrentPopup();
             }
+
+            // ============================================================
+            // MIDI CONTROL SECTION — ADDED FOR MIDI INPUT SUPPORT
+            // ============================================================
             ImGui::Separator();
-            if (gui_midi_ && gui_midi_->render_learn_menu_item(
-                    effect_->name(), params[pi].name)) {
-                ImGui::CloseCurrentPopup();
+            ImGui::TextColored(Theme::Gold(), "MIDI Control");
+            
+            // Get MIDI instance from engine
+            auto* midi = engine_.midi_input();
+            
+            if (!midi) {
+                ImGui::TextDisabled("MIDI not available in this build");
+            } else {
+                // Check if this parameter already has a MIDI mapping
+                auto mappings = midi->get_mappings();
+                bool has_mapping = false;
+                int mapped_cc = -1;
+                bool mapped_toggle = false;
+                
+                for (const auto& m : mappings) {
+                    if (m.effect_index == index_ && m.parameter_index == pi) {
+                        has_mapping = true;
+                        mapped_cc = m.cc_number;
+                        mapped_toggle = m.is_toggle;
+                        break;
+                    }
+                }
+                
+                if (has_mapping) {
+                    // Show existing mapping
+                    ImGui::Text("Mapped to CC%d (%s)", mapped_cc, 
+                        mapped_toggle ? "Toggle" : "Range");
+                    
+                    if (ImGui::Button("Remove MIDI Mapping")) {
+                        midi->remove_mapping(mapped_cc);
+                        ImGui::CloseCurrentPopup();
+                    }
+                } else {
+                    // MIDI Learn options
+                    if (ImGui::MenuItem("Learn MIDI CC (Toggle Bypass)")) {
+                        if (gui_midi_) {
+                            gui_midi_->start_learn(index_, pi, true);
+                        } else {
+                            midi->start_learn(index_, pi, true);
+                        }
+                        ImGui::CloseCurrentPopup();
+                    }
+                    if (ImGui::MenuItem("Learn MIDI CC (Range Control)")) {
+                        if (gui_midi_) {
+                            gui_midi_->start_learn(index_, pi, false);
+                        } else {
+                            midi->start_learn(index_, pi, false);
+                        }
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                
+                // Show learn mode status
+                if (midi->is_learning()) {
+                    ImGui::Spacing();
+                    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), 
+                        "⚡ Learning... Move a MIDI controller!");
+                    if (ImGui::Button("Cancel Learn")) {
+                        midi->stop_learn();
+                    }
+                }
             }
+
+            // ============================================================
+            // END MIDI SECTION
+            // ============================================================
+
             ImGui::EndPopup();
         }
 
@@ -226,17 +297,34 @@ void PedalWidget::render_knobs(ImDrawList* dl, ImVec2 p0, float pedal_width, boo
         dl->AddLine(ptr_from, ptr_to, ptr_color, 2.5f);
         dl->AddCircleFilled(ptr_to, 3.0f, ptr_color);
 
+        // Enhanced tooltip with MIDI info
         if (is_hovered || is_active) {
             std::string val_str  = Theme::formatParameterValue(params[pi].value, params[pi].unit);
             std::string min_str  = Theme::formatParameterValue(params[pi].min_val, params[pi].unit);
             std::string max_str  = Theme::formatParameterValue(params[pi].max_val, params[pi].unit);
+            
+            // Check for MIDI mapping to show in tooltip
+            auto* midi = engine_.midi_input();
+            std::string midi_info = "";
+            if (midi) {
+                auto mappings = midi->get_mappings();
+                for (const auto& m : mappings) {
+                    if (m.effect_index == index_ && m.parameter_index == pi) {
+                        midi_info = "\n\n[MIDI: CC" + std::to_string(m.cc_number) + 
+                                   (m.is_toggle ? " Toggle]" : " Range]");
+                        break;
+                    }
+                }
+            }
+            
             if (params[pi].tooltip.empty()) {
-                ImGui::SetTooltip("%s: %s\nRange: [%s, %s]\n\nRotate or drag to adjust\nScroll wheel also works\nShift=fine  Ctrl=coarse\nDbl-click=reset  Right-click=edit",
-                    params[pi].name.c_str(), val_str.c_str(), min_str.c_str(), max_str.c_str());
-            } else {
-                ImGui::SetTooltip("%s: %s\nRange: [%s, %s]\n\n%s\n\nRotate or drag to adjust\nScroll wheel also works\nShift=fine  Ctrl=coarse\nDbl-click=reset  Right-click=edit",
+                ImGui::SetTooltip("%s: %s\nRange: [%s, %s]%s\n\nRotate or drag to adjust\nScroll wheel also works\nShift=fine  Ctrl=coarse\nDbl-click=reset  Right-click=edit/MIDI",
                     params[pi].name.c_str(), val_str.c_str(), min_str.c_str(), max_str.c_str(),
-                    params[pi].tooltip.c_str());
+                    midi_info.c_str());
+            } else {
+                ImGui::SetTooltip("%s: %s\nRange: [%s, %s]\n\n%s%s\n\nRotate or drag to adjust\nScroll wheel also works\nShift=fine  Ctrl=coarse\nDbl-click=reset  Right-click=edit/MIDI",
+                    params[pi].name.c_str(), val_str.c_str(), min_str.c_str(), max_str.c_str(),
+                    params[pi].tooltip.c_str(), midi_info.c_str());
             }
         }
 
