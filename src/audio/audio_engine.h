@@ -6,6 +6,13 @@
 #include "audio/spsc_queue.h"
 #include <chrono>
 
+// ============================================================
+// FORWARD DECLARATION — ADDED FOR MIDI INPUT SUPPORT
+// ============================================================
+namespace amplitron {
+    class MidiInput;
+}
+
 namespace Amplitron {
 
 struct AudioDeviceInfo {
@@ -268,6 +275,28 @@ public:
      */
     void process_audio(const float* input, float* output, int frame_count);
 
+    // ============================================================
+    // MIDI INPUT ACCESSOR — ADDED FOR MIDI INPUT SUPPORT
+    // ============================================================
+    
+    /**
+     * @brief Get the MIDI input controller.
+     * @return Pointer to MidiInput instance, or nullptr if MIDI not available.
+     */
+    ::amplitron::MidiInput* midi_input() { return midi_input_.get(); }
+    
+    /**
+     * @brief Get the MIDI input controller (const).
+     * @return Const pointer to MidiInput instance, or nullptr if MIDI not available.
+     */
+    const ::amplitron::MidiInput* midi_input() const { return midi_input_.get(); }
+    
+    /**
+     * @brief Set the MIDI input controller (called during initialization).
+     * @param midi Unique pointer to MidiInput instance.
+     */
+    void set_midi_input(std::unique_ptr<::amplitron::MidiInput> midi) { midi_input_ = std::move(midi); }
+
 private:
     // Platform backend state (defined in the backend .cpp that is compiled)
     AudioBackendState* backend_ = nullptr;
@@ -329,6 +358,11 @@ private:
     std::array<float, ANALYZER_FFT_SIZE> analyzer_snapshot_input_{};
     std::array<float, ANALYZER_FFT_SIZE> analyzer_snapshot_output_{};
     std::atomic<uint64_t> analyzer_sequence_{0};
+
+    // ============================================================
+    // MIDI INPUT INSTANCE — ADDED FOR MIDI INPUT SUPPORT
+    // ============================================================
+    std::unique_ptr<::amplitron::MidiInput> midi_input_;
 };
 
 } // namespace Amplitron
