@@ -71,6 +71,7 @@ private:
     GuiMidi* gui_midi_ = nullptr;
     bool show_confirm_reset_ = false;
     bool show_confirm_clear_ = false;
+    bool show_confirm_midi_clear_ = false;
 };
 
 } // namespace Amplitron

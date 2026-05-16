@@ -139,6 +139,30 @@ void PedalBoard::render() {
         ImGui::EndPopup();
     }
 
+    if (show_confirm_midi_clear_) {
+        ImGui::OpenPopup("Confirm MIDI Clear##Modal");
+        show_confirm_midi_clear_ = false;
+    }
+
+    if (ImGui::BeginPopupModal("Confirm MIDI Clear##Modal", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Are you sure you want to clear ALL MIDI CC mappings?");
+        ImGui::TextColored(Theme::Gold(), "This action cannot be undone.");
+        ImGui::Spacing();
+
+        if (ImGui::Button("Clear All", ImVec2(120, 0))) {
+            if (gui_midi_) {
+                gui_midi_->manager().clear_mappings();
+            }
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SetItemDefaultFocus();
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+
     ImGui::SameLine();
 
     // Amp selector (separate dropdown to switch model)

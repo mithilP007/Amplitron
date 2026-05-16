@@ -178,7 +178,7 @@ void PedalBoard::render_midi_menu() {
 
         // Quick actions
         if (ImGui::MenuItem("Clear All Mappings")) {
-            midi.clear_mappings();
+            show_confirm_midi_clear_ = true;
         }
 
         if (ImGui::MenuItem("Save Config")) {
