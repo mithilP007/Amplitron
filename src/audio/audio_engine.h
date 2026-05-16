@@ -8,10 +8,6 @@
 
 // FORWARD DECLARATIONS
 namespace Amplitron {
-    class AudioBackend;
-}
-
-namespace Amplitron {
 
 struct AudioDeviceInfo {
     int index;

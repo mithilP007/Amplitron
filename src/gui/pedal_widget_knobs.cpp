@@ -265,17 +265,9 @@ void PedalWidget::render_knobs(ImDrawList* dl, ImVec2 p0, float pedal_width, boo
             std::string max_str  = Theme::formatParameterValue(params[pi].max_val, params[pi].unit);
             
             // Check for MIDI mapping to show in tooltip
-            auto* midi = engine_.midi_input();
             std::string midi_info = "";
-            if (midi) {
-                auto mappings = midi->get_mappings();
-                for (const auto& m : mappings) {
-                    if (m.effect_index == index_ && m.parameter_index == pi) {
-                        midi_info = "\n\n[MIDI: CC" + std::to_string(m.cc_number) + 
-                                   (m.is_toggle ? " Toggle]" : " Range]");
-                        break;
-                    }
-                }
+            if (gui_midi_) {
+                midi_info = gui_midi_->get_mapping_info(effect_->name(), params[pi].name);
             }
             
             if (params[pi].tooltip.empty()) {

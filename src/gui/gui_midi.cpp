@@ -269,4 +269,17 @@ bool GuiMidi::render_remove_bypass_item(const std::string& effect_name) {
     return false;
 }
 
+std::string GuiMidi::get_mapping_info(const std::string& effect_name,
+                                      const std::string& param_name) const {
+    for (const auto& m : midi_.mappings()) {
+        if (m.target_type == MidiTargetType::EffectParam &&
+            m.effect_name == effect_name &&
+            m.param_name == param_name) {
+            return "\n\n[MIDI: CC" + std::to_string(m.cc_number) +
+                   (m.mode == MidiMappingMode::Toggle ? " Toggle]" : " Range]");
+        }
+    }
+    return "";
+}
+
 } // namespace Amplitron
