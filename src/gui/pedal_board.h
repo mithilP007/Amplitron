@@ -50,6 +50,9 @@ private:
 
     /** @brief Render the amp model selector dropdown. */
     void render_amp_selector();
+    
+    /** @brief Render the MIDI status and quick actions menu. */
+    void render_midi_menu();
 
     /** @brief Render the signal flow line, pedal widgets, and drag-and-drop targets. */
     void render_signal_chain();

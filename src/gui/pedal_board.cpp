@@ -94,6 +94,9 @@ void PedalBoard::render() {
     }
     ImGui::SameLine();
 
+    render_midi_menu();
+    ImGui::SameLine();
+
     // --- Confirmation Modals ---
     // OpenPopup must only be called on the transition frame, not every frame.
     if (show_confirm_reset_) {

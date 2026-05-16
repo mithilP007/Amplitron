@@ -69,6 +69,9 @@ public:
     std::string get_mapping_info(const std::string& effect_name,
                                  const std::string& param_name) const;
 
+    /** @brief Access the underlying MIDI manager. */
+    MidiManager& manager() { return midi_; }
+
 private:
     MidiManager& midi_;
     std::vector<std::string> cached_ports_;
