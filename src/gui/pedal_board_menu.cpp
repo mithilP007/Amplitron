@@ -1,4 +1,5 @@
 #include "gui/pedal_board.h"
+#include "gui/gui_midi.h"
 #include "gui/theme.h"
 
 #include "audio/effects/noise_gate.h"
