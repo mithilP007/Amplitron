@@ -12,13 +12,19 @@ class MidiManager;
 // Stub implementation for non-desktop platforms
 class GuiMidi {
 public:
-    explicit GuiMidi(MidiManager&) {}
+    explicit GuiMidi(MidiManager& midi) : midi_(midi) {}
     void render(bool&) {}
     bool render_learn_menu_item(const std::string&, const std::string&) { return false; }
     bool render_learn_bypass_item(const std::string&) { return false; }
     bool render_remove_mapping_item(const std::string&, const std::string&) { return false; }
     bool render_remove_bypass_item(const std::string&) { return false; }
     std::string get_mapping_info(const std::string&, const std::string&) const { return ""; }
+
+    const MidiManager& midi() const { return midi_; }
+    MidiManager& manager() { return midi_; }
+
+private:
+    MidiManager& midi_;
 };
 
 #else
@@ -41,8 +47,7 @@ public:
      * @brief Render a "MIDI Learn" item inside a knob's right-click popup.
      * @return true if learn was activated (caller should close the popup).
      */
-    bool render_learn_menu_item(const std::string& effect_name,
-                                const std::string& param_name);
+    bool render_learn_menu_item(const std::string& effect_name, const std::string& param_name);
 
     /**
      * @brief Render a "MIDI Learn (Bypass)" item for effect bypass toggle.
@@ -54,8 +59,7 @@ public:
      * @brief Render a "Remove MIDI Mapping" item if one exists.
      * @return true if mapping was removed.
      */
-    bool render_remove_mapping_item(const std::string& effect_name,
-                                    const std::string& param_name);
+    bool render_remove_mapping_item(const std::string& effect_name, const std::string& param_name);
 
     /**
      * @brief Render a "Remove MIDI Bypass Mapping" item if one exists.
@@ -66,8 +70,7 @@ public:
     /**
      * @brief Get a formatted string describing the MIDI mapping for a parameter.
      */
-    std::string get_mapping_info(const std::string& effect_name,
-                                 const std::string& param_name) const;
+    std::string get_mapping_info(const std::string& effect_name, const std::string& param_name) const;
 
     /** @brief Access the underlying MIDI manager (const). */
     const MidiManager& midi() const { return midi_; }
