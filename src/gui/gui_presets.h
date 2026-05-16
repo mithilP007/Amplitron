@@ -16,8 +16,12 @@ class PedalBoard;
  */
 class GuiPresets {
 public:
-    GuiPresets(AudioEngine& engine, CommandHistory& history)
-        : engine_(engine), history_(history) {}
+    /**
+     * @brief Construct a GuiPresets helper for the given audio engine and undo history.
+     * @param engine Reference to the engine used for preset state capture.
+     * @param history Shared command history for undo/redo integration.
+     */
+    GuiPresets(AudioEngine& engine, CommandHistory& history);
 
     /** @brief Render save preset popup. Only call when show is true. */
     void render_save_popup(bool& show);
@@ -51,12 +55,23 @@ public:
     const std::string& status_message() const { return preset_status_msg_; }
     void set_status_message(const std::string& msg) { preset_status_msg_ = msg; }
 
+    /** @brief Return true if the current engine state differs from the last saved preset. */
+    bool is_dirty() const;
+
+    /** @brief Return the current preset name or "Untitled" if unset. */
+    std::string current_preset_name() const;
+
+    /** @brief Record the current engine state as the clean saved preset state. */
+    void mark_clean();
+
 private:
     std::string preset_name_from_path(const std::string& filepath) const;
     std::string preset_path_from_name(const std::string& preset_name) const;
 
     AudioEngine& engine_;
     CommandHistory& history_;
+    PresetData saved_state_;
+    bool saved_state_valid_ = false;
     PedalBoard* pedal_board_ = nullptr;
     MidiManager* midi_manager_ = nullptr;
 

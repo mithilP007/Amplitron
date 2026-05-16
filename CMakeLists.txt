@@ -445,6 +445,7 @@ else() # NOT EMSCRIPTEN, ANDROID, or IOS
         tests/test_snapshot_manager.cpp
         tests/test_ir_cabinet.cpp
         tests/test_midi_manager.cpp
+        tests/test_unsaved_preset.cpp
     )
 
     # Effect + core sources needed by tests (no GUI, no main)
