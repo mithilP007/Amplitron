@@ -69,7 +69,10 @@ public:
     std::string get_mapping_info(const std::string& effect_name,
                                  const std::string& param_name) const;
 
-    /** @brief Access the underlying MIDI manager. */
+    /** @brief Access the underlying MIDI manager (const). */
+    const MidiManager& midi() const { return midi_; }
+
+    /** @brief Access the underlying MIDI manager (mutable). */
     MidiManager& manager() { return midi_; }
 
 private:
