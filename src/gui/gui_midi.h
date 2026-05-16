@@ -47,6 +47,19 @@ public:
      */
     bool render_learn_bypass_item(const std::string& effect_name);
 
+    /**
+     * @brief Render a "Remove MIDI Mapping" item if one exists.
+     * @return true if mapping was removed.
+     */
+    bool render_remove_mapping_item(const std::string& effect_name,
+                                    const std::string& param_name);
+
+    /**
+     * @brief Render a "Remove MIDI Bypass Mapping" item if one exists.
+     * @return true if mapping was removed.
+     */
+    bool render_remove_bypass_item(const std::string& effect_name);
+
 private:
     MidiManager& midi_;
     std::vector<std::string> cached_ports_;

@@ -180,10 +180,6 @@ set(APP_SOURCES
     src/gui/gui_snapshots.cpp
     src/preset_manager_dirs.cpp
     src/preset_manager_io.cpp
-    # ============================================================
-    # MIDI INPUT CORE — ADDED FOR MIDI INPUT SUPPORT
-    # ============================================================
-    src/audio/midi_input.cpp
 )
 
 # --- MIDI Support (desktop only) ---
@@ -449,10 +445,6 @@ else() # NOT EMSCRIPTEN, ANDROID, or IOS
         tests/test_snapshot_manager.cpp
         tests/test_ir_cabinet.cpp
         tests/test_midi_manager.cpp
-        # ============================================================
-        # MIDI INPUT TESTS — ADDED FOR MIDI INPUT SUPPORT
-        # ============================================================
-        tests/test_midi.cpp
     )
 
     # Effect + core sources needed by tests (no GUI, no main)
@@ -492,10 +484,6 @@ else() # NOT EMSCRIPTEN, ANDROID, or IOS
         src/audio/effects/pitch_shifter.cpp
         src/audio/dsp/wav_loader.cpp
         src/audio/dsp/convolution_engine.cpp
-        # ============================================================
-        # MIDI INPUT CORE FOR TESTS — ADDED FOR MIDI INPUT SUPPORT
-        # ============================================================
-        src/audio/midi_input.cpp
     )
 
     # Desktop-only MIDI support for tests

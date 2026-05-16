@@ -85,23 +85,53 @@ void PedalBoard::render() {
     ImGui::SameLine();
 
     if (ImGui::Button("Reset All")) {
-        for (auto& fx : engine_.effects()) {
-            fx->reset();
-            auto& p = fx->params();
-            for (auto& param : p) {
-                param.value = param.default_val;
-            }
-        }
+        show_confirm_reset_ = true;
     }
     ImGui::SameLine();
 
     if (ImGui::Button("Clear All")) {
-        if (!engine_.effects().empty()) {
-            history_.execute(std::make_unique<ClearAllCommand>(engine_));
-            rebuild_widgets();
-        }
+        show_confirm_clear_ = true;
     }
     ImGui::SameLine();
+
+    // --- Confirmation Modals ---
+    if (show_confirm_reset_) ImGui::OpenPopup("Confirm Reset##Modal");
+    if (show_confirm_clear_) ImGui::OpenPopup("Confirm Clear##Modal");
+
+    if (ImGui::BeginPopupModal("Confirm Reset##Modal", &show_confirm_reset_, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Are you sure you want to reset ALL parameters to their default values?\nThis will affect every pedal on the board.");
+        ImGui::Separator();
+        if (ImGui::Button("Reset", ImVec2(120, 0))) {
+            history_.execute(std::make_unique<ResetAllCommand>(engine_));
+            show_confirm_reset_ = false;
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SetItemDefaultFocus();
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            show_confirm_reset_ = false;
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginPopupModal("Confirm Clear##Modal", &show_confirm_clear_, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Are you sure you want to remove ALL pedals from the signal chain?\nThis cannot be undone easily if you have many complex settings.");
+        ImGui::Separator();
+        if (ImGui::Button("Clear All", ImVec2(120, 0))) {
+            history_.execute(std::make_unique<ClearAllCommand>(engine_));
+            rebuild_widgets();
+            show_confirm_clear_ = false;
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SetItemDefaultFocus();
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            show_confirm_clear_ = false;
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
 
     ImGui::SameLine();
 

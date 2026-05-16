@@ -6,11 +6,9 @@
 #include "audio/spsc_queue.h"
 #include <chrono>
 
-// ============================================================
-// FORWARD DECLARATION — ADDED FOR MIDI INPUT SUPPORT
-// ============================================================
-namespace amplitron {
-    class MidiInput;
+// FORWARD DECLARATIONS
+namespace Amplitron {
+    class AudioBackend;
 }
 
 namespace Amplitron {
@@ -275,27 +273,7 @@ public:
      */
     void process_audio(const float* input, float* output, int frame_count);
 
-    // ============================================================
-    // MIDI INPUT ACCESSOR — ADDED FOR MIDI INPUT SUPPORT
-    // ============================================================
-    
-    /**
-     * @brief Get the MIDI input controller.
-     * @return Pointer to MidiInput instance, or nullptr if MIDI not available.
-     */
-    ::amplitron::MidiInput* midi_input() { return midi_input_.get(); }
-    
-    /**
-     * @brief Get the MIDI input controller (const).
-     * @return Const pointer to MidiInput instance, or nullptr if MIDI not available.
-     */
-    const ::amplitron::MidiInput* midi_input() const { return midi_input_.get(); }
-    
-    /**
-     * @brief Set the MIDI input controller (called during initialization).
-     * @param midi Unique pointer to MidiInput instance.
-     */
-    void set_midi_input(std::unique_ptr<::amplitron::MidiInput> midi) { midi_input_ = std::move(midi); }
+    // MIDI instance is managed by the GUI thread's MidiManager.
 
 private:
     // Platform backend state (defined in the backend .cpp that is compiled)
@@ -359,10 +337,7 @@ private:
     std::array<float, ANALYZER_FFT_SIZE> analyzer_snapshot_output_{};
     std::atomic<uint64_t> analyzer_sequence_{0};
 
-    // ============================================================
-    // MIDI INPUT INSTANCE — ADDED FOR MIDI INPUT SUPPORT
-    // ============================================================
-    std::unique_ptr<::amplitron::MidiInput> midi_input_;
+    // (MIDI instance removed - use MidiManager)
 };
 
 } // namespace Amplitron

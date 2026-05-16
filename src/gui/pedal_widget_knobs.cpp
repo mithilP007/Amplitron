@@ -179,70 +179,31 @@ void PedalWidget::render_knobs(ImDrawList* dl, ImVec2 p0, float pedal_width, boo
             }
 
             // ============================================================
-            // MIDI CONTROL SECTION — ADDED FOR MIDI INPUT SUPPORT
+            // MIDI CONTROL SECTION
             // ============================================================
             ImGui::Separator();
             ImGui::TextColored(Theme::Gold(), "MIDI Control");
             
-            // Get MIDI instance from engine
-            auto* midi = engine_.midi_input();
-            
-            if (!midi) {
-                ImGui::TextDisabled("MIDI not available in this build");
+            if (gui_midi_) {
+                // Parameter Range mapping
+                if (gui_midi_->render_remove_mapping_item(effect_->name(), params[pi].name)) {
+                    ImGui::CloseCurrentPopup();
+                }
+                if (gui_midi_->render_learn_menu_item(effect_->name(), params[pi].name)) {
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::Spacing();
+
+                // Bypass Toggle mapping
+                if (gui_midi_->render_remove_bypass_item(effect_->name())) {
+                    ImGui::CloseCurrentPopup();
+                }
+                if (gui_midi_->render_learn_bypass_item(effect_->name())) {
+                    ImGui::CloseCurrentPopup();
+                }
             } else {
-                // Check if this parameter already has a MIDI mapping
-                auto mappings = midi->get_mappings();
-                bool has_mapping = false;
-                int mapped_cc = -1;
-                bool mapped_toggle = false;
-                
-                for (const auto& m : mappings) {
-                    if (m.effect_index == index_ && m.parameter_index == pi) {
-                        has_mapping = true;
-                        mapped_cc = m.cc_number;
-                        mapped_toggle = m.is_toggle;
-                        break;
-                    }
-                }
-                
-                if (has_mapping) {
-                    // Show existing mapping
-                    ImGui::Text("Mapped to CC%d (%s)", mapped_cc, 
-                        mapped_toggle ? "Toggle" : "Range");
-                    
-                    if (ImGui::Button("Remove MIDI Mapping")) {
-                        midi->remove_mapping(mapped_cc);
-                        ImGui::CloseCurrentPopup();
-                    }
-                } else {
-                    // MIDI Learn options
-                    if (ImGui::MenuItem("Learn MIDI CC (Toggle Bypass)")) {
-                        if (gui_midi_) {
-                            gui_midi_->start_learn(index_, pi, true);
-                        } else {
-                            midi->start_learn(index_, pi, true);
-                        }
-                        ImGui::CloseCurrentPopup();
-                    }
-                    if (ImGui::MenuItem("Learn MIDI CC (Range Control)")) {
-                        if (gui_midi_) {
-                            gui_midi_->start_learn(index_, pi, false);
-                        } else {
-                            midi->start_learn(index_, pi, false);
-                        }
-                        ImGui::CloseCurrentPopup();
-                    }
-                }
-                
-                // Show learn mode status
-                if (midi->is_learning()) {
-                    ImGui::Spacing();
-                    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), 
-                        "⚡ Learning... Move a MIDI controller!");
-                    if (ImGui::Button("Cancel Learn")) {
-                        midi->stop_learn();
-                    }
-                }
+                ImGui::TextDisabled("MIDI manager not available");
             }
 
             // ============================================================

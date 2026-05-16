@@ -227,4 +227,46 @@ bool GuiMidi::render_learn_bypass_item(const std::string& effect_name) {
     return false;
 }
 
+bool GuiMidi::render_remove_mapping_item(const std::string& effect_name,
+                                         const std::string& param_name) {
+    int remove_idx = -1;
+    const auto& mappings = midi_.mappings();
+    for (int i = 0; i < static_cast<int>(mappings.size()); ++i) {
+        if (mappings[i].target_type == MidiTargetType::EffectParam &&
+            mappings[i].effect_name == effect_name &&
+            mappings[i].param_name == param_name) {
+            remove_idx = i;
+            break;
+        }
+    }
+
+    if (remove_idx >= 0) {
+        if (ImGui::MenuItem("Remove MIDI Mapping")) {
+            midi_.remove_mapping(remove_idx);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool GuiMidi::render_remove_bypass_item(const std::string& effect_name) {
+    int remove_idx = -1;
+    const auto& mappings = midi_.mappings();
+    for (int i = 0; i < static_cast<int>(mappings.size()); ++i) {
+        if (mappings[i].target_type == MidiTargetType::EffectBypass &&
+            mappings[i].effect_name == effect_name) {
+            remove_idx = i;
+            break;
+        }
+    }
+
+    if (remove_idx >= 0) {
+        if (ImGui::MenuItem("Remove MIDI Bypass Mapping")) {
+            midi_.remove_mapping(remove_idx);
+            return true;
+        }
+    }
+    return false;
+}
+
 } // namespace Amplitron

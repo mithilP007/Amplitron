@@ -18,12 +18,6 @@ public:
 private:
     AudioEngine& engine_;
 
-    // ============================================================
-    // MIDI SETTINGS RENDERING — ADDED FOR MIDI INPUT SUPPORT
-    // ============================================================
-    
-    /** @brief Render the MIDI Control section inside settings. */
-    void render_midi_settings();
 };
 
 } // namespace Amplitron
