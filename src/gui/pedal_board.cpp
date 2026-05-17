@@ -3,6 +3,8 @@
 #include "gui/theme.h"
 #include "gui/command.h"
 #include "audio/effects/amp_simulator.h"
+#include "gui/gui_midi.h"
+#include "midi/midi_manager.h"
 
 #include <cstring>
 #include <imgui.h>
