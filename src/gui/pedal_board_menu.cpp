@@ -153,7 +153,11 @@ void PedalBoard::render_midi_menu() {
     if (!gui_midi_) return;
     auto& midi = gui_midi_->manager();
 
-    if (ImGui::BeginMenu("MIDI")) {
+    if (ImGui::Button("MIDI")) {
+        ImGui::OpenPopup("MidiMenuPopup");
+    }
+
+    if (ImGui::BeginPopup("MidiMenuPopup")) {
         // Device status
         if (midi.is_port_open()) {
             ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "● Connected");
@@ -196,7 +200,7 @@ void PedalBoard::render_midi_menu() {
         auto& mappings = midi.mappings();
         ImGui::TextDisabled("%zu active mappings", mappings.size());
 
-        ImGui::EndMenu();
+        ImGui::EndPopup();
     }
 }
 
